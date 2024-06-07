@@ -34,6 +34,7 @@ void print_set(Set* set){
             }
         }
     }
+    printf("\n");
 }
 
 int is_bit_on(Set* set, int byte, int bit){
@@ -49,6 +50,8 @@ void union_set(Set* set_a, Set* set_b, Set* set_c){
         for (bit = 0; bit < 8; bit++) {
             if (is_bit_on(set_a, byte, bit) || is_bit_on(set_b, byte, bit)){
                 set_c->bits[byte] |= (1 << (7 - bit));
+            } else {
+                set_c->bits[byte] &= ~(1 << (7 - bit));
             }
         }
     }
@@ -60,6 +63,8 @@ void intersect_set(Set* set_a, Set* set_b, Set* set_c){
         for (bit = 0; bit < 8; bit++) {
             if (is_bit_on(set_a, byte, bit) && is_bit_on(set_b, byte, bit)){
                 set_c->bits[byte] |= (1 << (7 - bit));
+            } else {
+                set_c->bits[byte] &= ~(1 << (7 - bit));
             }
         }
     }
@@ -71,6 +76,8 @@ void sub_set(Set* set_a, Set* set_b, Set* set_c){
         for (bit = 0; bit < 8; bit++) {
             if (is_bit_on(set_a, byte, bit) && !(is_bit_on(set_b, byte, bit))){
                 set_c->bits[byte] |= (1 << (7 - bit));
+            } else {
+                set_c->bits[byte] &= ~(1 << (7 - bit));
             }
         }
     }
@@ -82,6 +89,8 @@ void symdiff_set(Set* set_a, Set* set_b, Set* set_c){
         for (bit = 0; bit < 8; bit++) {
             if (is_bit_on(set_a, byte, bit) ^ is_bit_on(set_b, byte, bit)){
                 set_c->bits[byte] |= (1 << (7 - bit));
+            } else {
+                set_c->bits[byte] &= ~(1 << (7 - bit));
             }
         }
     }
