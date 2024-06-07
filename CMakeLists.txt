@@ -4,6 +4,8 @@ project(Laboraty C)
 set(CMAKE_C_STANDARD 90)
 
 add_executable(Laboraty
-        main.c
+        myset.c
         set.c
-        set.h)
+        set.h
+        validation.c
+        validation.h)

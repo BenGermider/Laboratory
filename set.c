@@ -5,7 +5,7 @@
 
 
 void read_set(Set* set, int* arr, int arr_size){
-    int i, j;
+    int i;
     int byte_index, bit_index;
 
     for (i = 0; i < arr_size; i++) {
@@ -24,15 +24,26 @@ void read_set(Set* set, int* arr, int arr_size){
 
 void print_set(Set* set){
     int byte, bit;
-
+    int empty_flag = 0, beginning = 1;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
             if (set->bits[byte] & (1 << (7 - bit))) {
                 // Bit is set, so print its index
+                empty_flag = 1;
+                if(beginning){
+                    printf("SET: {");
+                    beginning = 0;
+                }
                 int index = byte * 8 + bit;
                 printf("%d ", index);
             }
         }
+    }
+    if(!beginning){
+        printf("}");
+    }
+    if(!empty_flag){
+        printf("The set is empty.");
     }
     printf("\n");
 }
@@ -103,11 +114,9 @@ void stop(){
 
 
 //char* bad_set_name = "Undefined set name.\n";
-//char* bad_cmd_name = "Undefined command name.\n";
 //char* bad_set_member = "Invalid set member - ";
 //char* bad_set_ending = "List of set members is not terminated correctly.\n";
 //char* range = "value out of range.\n";
-//char* not_int = "not an integer.\n";
 //char* cons_c = "Multiple consecutive commas.\n";
 //char* missing_c = "Missing comma.\n";
 //char* miss_param = "Missing parameter.\n";
