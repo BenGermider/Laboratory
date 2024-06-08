@@ -113,6 +113,5 @@ void stop(){
 
 
 
-//char* bad_set_name = "Undefined set name.\n";
 //char* miss_param = "Missing parameter.\n";
 //char* illegal_c = "Illegal comma.\n";
