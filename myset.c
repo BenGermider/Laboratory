@@ -5,11 +5,20 @@
 #include "set.h"
 #include "validation.h"
 
+#define bad_set_member "Invalid set member - "
+#define range "value out of range.\n"
 #define not_int "not an integer.\n"
 #define bad_cmd_name "Undefined command name.\n"
+#define bad_set_ending "List of set members is not terminated correctly.\n"
+#define ext_txt "Extraneous text after end of command.\n"
+#define cons_c "Multiple consecutive commas.\n"
+#define missing_c "Missing comma.\n"
+
+
+
 
 char* read_command(char* command){
-    int buffer = 1, txt_len = 0;
+    int buffer = 1, txt_len = 0, found_comma = 0;
     char* temp;
 
     do {
@@ -24,9 +33,26 @@ char* read_command(char* command){
             command = temp;
         }
         command[txt_len] = getchar();
+        if(command[txt_len] == ','){
+            found_comma = 1;
+            if(txt_len > 0 && command[txt_len - 1] == ','){
+                printf(cons_c);
+                return NULL;
+            }
+        }
         txt_len++;
     } while (command[txt_len - 1] != '\n' && command[txt_len - 1] != EOF);
     command[txt_len - 1] = '\0';
+
+    if(!found_comma){
+        printf(missing_c);
+        return NULL;
+    }
+
+    if(!(isupper(command[txt_len - 2]) || isdigit(command[txt_len - 2]))){
+        printf(ext_txt);
+        return NULL;
+    }
     return command;
 }
 
@@ -61,7 +87,9 @@ int calc_size(const char* arr){
 
 int* get_arr_as_int(char* arr){
     int *nums = NULL;
+    int bound_test;
     int count = 0;
+    int size = calc_size(arr);
     char* copy_arr = (char*)malloc(strlen(arr) + 1);
     if (copy_arr == NULL) {
         return NULL;
@@ -77,15 +105,26 @@ int* get_arr_as_int(char* arr){
                 return NULL;
             }
             nums = temp;
-            nums[count++] = atoi(token);
+            bound_test = atoi(token);
+            if((bound_test < 0 || bound_test > 127) && (size - 1) != count){
+                printf(bad_set_member);
+                printf(range);
+                return NULL;
+            }
+            nums[count++] = bound_test;
         }
-//        else {
-//            printf(not_int);
-//            free(arr);
-//            free(copy_arr);
-//            return NULL;
-//        }
+        else {
+            printf(bad_set_member);
+            printf(not_int);
+            free(arr);
+            free(copy_arr);
+            return NULL;
+        }
         token = strtok(NULL, ",");
+    }
+    if(nums[count - 1] != -1){
+        printf(bad_set_ending);
+        return NULL;
     }
     free(copy_arr);
     return nums;

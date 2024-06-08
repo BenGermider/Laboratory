@@ -114,11 +114,5 @@ void stop(){
 
 
 //char* bad_set_name = "Undefined set name.\n";
-//char* bad_set_member = "Invalid set member - ";
-//char* bad_set_ending = "List of set members is not terminated correctly.\n";
-//char* range = "value out of range.\n";
-//char* cons_c = "Multiple consecutive commas.\n";
-//char* missing_c = "Missing comma.\n";
 //char* miss_param = "Missing parameter.\n";
 //char* illegal_c = "Illegal comma.\n";
-//char* ext_txt = "Extraneous text after end of command.\n";
