@@ -12,6 +12,18 @@
 #define ext_txt "Extraneous text after end of command.\n"
 #define cons_c "Multiple consecutive commas.\n"
 #define missing_c "Missing comma.\n"
+#define num_sep "Numbers aren't seperated properly\n"
+#define miss_param "Missing parameter.\n"
+#define bad_set_name "Undefined set name.\n"
+
+void remove_spaces(char* s) {
+    char* d = s;
+    do {
+        while (*d == ' ') {
+            ++d;
+        }
+    } while (*s++ = *d++);
+}
 
 // Function to get prefix and substring
 char* get_prefix_plus_substring(const char* input, char** func) {
@@ -39,6 +51,8 @@ char* get_prefix_plus_substring(const char* input, char** func) {
 
     // Null-terminate the result
     result[length_to_copy] = '\0';
+
+    remove_spaces(result);
 
     // Compare the result with the array of valid commands
     for (i = 0; i < 7; i++) {
@@ -68,27 +82,79 @@ char* get_arr_as_string(char* command) {
     if (comma_pos == NULL) {
         return NULL;
     }
-    return comma_pos + 2;
+    return comma_pos + 1;
 }
 
-// Function to calculate the size of an array of numbers
-int calc_size(const char* arr) {
-    int size = 1;
-    const char* temp = arr;
-    while (*temp) {
-        if (*temp == ',') {
-            size++;
+int calc_size(const char *str) {
+    int size = 0, on_num = 0, comma_flag = 0, space_flag = 0;
+    while (*str) {
+        if (isdigit(*str) || (*str == '-' && isdigit(*(str + 1)))) {
+            if (!on_num) {
+                on_num = 1; // Start of a new number
+                size++;
+            }
+            comma_flag = 0; // Reset comma_flag if we are in a number
+        } else if (*str == ',') {
+            if (on_num) {
+                on_num = 0; // End of the current number
+            } else if (comma_flag) {
+                printf(cons_c);
+                return -1;
+            }
+            comma_flag = 1;
+            space_flag = 0;
+        } else if (*str == ' ') {
+            if (on_num) {
+                on_num = 0;
+            }
+            if (!comma_flag) {
+                space_flag = 1;
+            }
+        } else {
+            printf(bad_set_member);
+            printf(not_int);
+            return -1;
         }
-        temp++;
+        str++;
     }
+
+    if (space_flag) {
+        printf(num_sep);
+        return -1;
+    }
+
     return size;
 }
 
-int* get_arr_as_int(char* arr) {
+char* trim_spaces(char* str) {
+    char* end;
+
+    // Trim leading space
+    while (isspace((unsigned char)*str)) str++;
+
+    // All spaces?
+    if (*str == 0)
+        return str;
+
+    // Trim trailing space
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+
+    // Write new null terminator
+    *(end + 1) = 0;
+
+    return str;
+}
+
+int* get_arr_as_int(char* arr, int* size) {
     int *nums = NULL;
     int bound_test;
     int count = 0;
-    int size = calc_size(arr);
+    *size = calc_size(arr);
+    if(*size == -1){
+        return NULL;
+    }
+    remove_spaces(arr);
     char* copy_arr = (char*)malloc(strlen(arr) + 1);
     if (copy_arr == NULL) {
         return NULL;
@@ -96,6 +162,7 @@ int* get_arr_as_int(char* arr) {
     strcpy(copy_arr, arr);
     char *token = strtok(copy_arr, ",");
     while (token != NULL) {
+        token = trim_spaces(token);
         if (is_integer(token)) {
             int* temp = realloc(nums, (count + 1) * sizeof(int));
             if (temp == NULL) {
@@ -105,7 +172,7 @@ int* get_arr_as_int(char* arr) {
             }
             nums = temp;
             bound_test = atoi(token);
-            if ((bound_test < 0 || bound_test > 127) && (size - 1) != count) {
+            if ((bound_test < 0 || bound_test > 127) && (*size - 1) != count) {
                 printf(bad_set_member);
                 printf(range);
                 free(nums);
@@ -205,6 +272,7 @@ int* get_sets(const char* command, const char* func, int* size) {
 // Function to read command from input
 char* read_command(char* command, char** func) {
     int buffer = 1, txt_len = 0, found_comma = 0;
+    int i;
     char* temp;
     char* test;
 
@@ -220,23 +288,17 @@ char* read_command(char* command, char** func) {
             command = temp;
         }
         command[txt_len] = getchar();
-        if (command[txt_len] == ',') {
+
+        if(command[txt_len] == ','){
             found_comma = 1;
-            if (txt_len > 0 && command[txt_len - 1] == ',') {
-                printf(cons_c);
-                free(command);
-                return NULL;
-            }
         }
+
         txt_len++;
+
     } while (command[txt_len - 1] != '\n' && command[txt_len - 1] != EOF);
     command[txt_len - 1] = '\0';
 
-    if (!(isupper(command[txt_len - 2]) || isdigit(command[txt_len - 2]))) {
-        printf(ext_txt);
-        free(command);
-        return NULL;
-    }
+    printf("[USER INPUT] %s\n", command);
 
     test = get_prefix_plus_substring(command, func);
     if (test == NULL) {
@@ -250,19 +312,37 @@ char* read_command(char* command, char** func) {
         return NULL;
     }
 
+    for(i = 0; i < txt_len; i++){
+        if(i > 0){
+            if(command[i] == ',' && command[i - 1] == ','){
+                printf(cons_c);
+                free(command);
+                return NULL;
+            }
+        }
+    }
+
+    if (!(isupper(command[txt_len - 2]) || isdigit(command[txt_len - 2]) || isspace(command[txt_len -2]))) {
+        printf(ext_txt);
+        free(command);
+        return NULL;
+    }
+
+
     return command;
 }
 
 void analyze_command(char* command, const char* func, const int* set_pointers, Set sets[]) {
+    char* array_as_string = NULL;
+    int* nums = NULL;
+    int arr_size;
     if (strcmp(func, "print_set") == 0) {
         print_set(&sets[set_pointers[0]]);
     } else if (strcmp(func, "read_set") == 0) {
-        char* array_as_string = get_arr_as_string(command);
-        int* nums = get_arr_as_int(array_as_string);
-        int arr_size = calc_size(array_as_string);
+        array_as_string = get_arr_as_string(command);
+        nums = get_arr_as_int(array_as_string, &arr_size);
         read_set(&sets[set_pointers[0]], nums, arr_size);
         free(nums);
-        free(array_as_string);
     } else if (strcmp(func, "union_set") == 0) {
         union_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "intersect_set") == 0) {
@@ -287,10 +367,11 @@ void analyze_command(char* command, const char* func, const int* set_pointers, S
 int main() {
     Set set_arr[6];
     char* func = NULL;
-    int i;
+    char* command = NULL;
     int *sets;
     int size;
-    char* command = (char*)malloc(sizeof(char));
+    int i = 1;
+    command = (char*)malloc(1 * sizeof(char));
     if (command == NULL) {
         printf("Failed to allocate memory");
         return 1;
@@ -298,6 +379,7 @@ int main() {
     memset(set_arr, 0, 6 * sizeof(Set));
 
     do {
+        printf("Enter the desired command:\n");
         command = read_command(command, &func);
         sets = get_sets(command, func, &size);
         if(command == NULL || sets == NULL){
@@ -307,8 +389,9 @@ int main() {
         }
 
         analyze_command(command, func, sets, set_arr);
+        printf("Finished command no. %d\n", i++);
         free(sets);
-    } while (strcmp(command, "stop") == 0);
+    } while (strcmp(command, "stop") != 0);
     free(command);
 
 

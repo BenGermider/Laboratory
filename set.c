@@ -108,10 +108,9 @@ void symdiff_set(Set* set_a, Set* set_b, Set* set_c){
 }
 
 void stop(){
-    exit(0);
+
 }
 
 
 
-//char* miss_param = "Missing parameter.\n";
 //char* illegal_c = "Illegal comma.\n";
