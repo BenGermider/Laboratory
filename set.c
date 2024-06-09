@@ -23,18 +23,17 @@ void read_set(Set* set, int* arr, int arr_size){
 }
 
 void print_set(Set* set){
-    int byte, bit;
+    int byte, bit, index;
     int empty_flag = 0, beginning = 1;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
             if (set->bits[byte] & (1 << (7 - bit))) {
-                // Bit is set, so print its index
                 empty_flag = 1;
                 if(beginning){
-                    printf("SET: {");
+                    printf("SET: { ");
                     beginning = 0;
                 }
-                int index = byte * 8 + bit;
+                index = byte * 8 + bit;
                 printf("%d ", index);
             }
         }
@@ -113,4 +112,3 @@ void stop(){
 
 
 
-//char* illegal_c = "Illegal comma.\n";

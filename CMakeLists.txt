@@ -9,3 +9,5 @@ add_executable(Laboraty
         set.h
         validation.c
         validation.h)
+
+target_compile_options(Laboraty PRIVATE -ansi -Wall -pedantic)

@@ -1,6 +1,3 @@
-//
-// Created by Ben on 6/4/2024.
-//
 
 #ifndef LABORATY_SET_H
 #define LABORATY_SET_H
@@ -27,4 +24,4 @@ void symdiff_set(Set* set_a, Set* set_b, Set* set_c);
 
 void stop();
 
-#endif //LABORATY_SET_H
+#endif

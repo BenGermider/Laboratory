@@ -13,69 +13,80 @@
 #define cons_c "Multiple consecutive commas.\n"
 #define missing_c "Missing comma.\n"
 #define num_sep "Numbers aren't seperated properly\n"
+#define bad_c "Illegal comma.\n"
 #define miss_param "Missing parameter.\n"
 #define bad_set_name "Undefined set name.\n"
+#define invalid_input "Undefined character.\n"
 
 char* trim_spaces(char* str) {
     char* end;
 
-    // Trim leading space
     while (isspace((unsigned char)*str)) str++;
 
-    // All spaces?
     if (*str == 0)
         return str;
 
-    // Trim trailing space
     end = str + strlen(str) - 1;
     while (end > str && isspace((unsigned char)*end)) end--;
 
-    // Write new null terminator
     *(end + 1) = 0;
 
     return str;
 }
 
+int is_valid_set_name(char* set_name){
+    if(strlen(set_name) != 4){
+        return 0;
+    }
+    if (strncmp(set_name, "SET", 3) != 0){
+        return 0;
+    }
+    if (set_name[3] < 'A' || set_name[3] > 'F'){
+        return 0;
+    }
+    return 1;
+}
+
+int get_set_index(char* set_name){
+    return set_name[3] - 'A';
+}
+
 
 void remove_spaces(char* s) {
     char* d = s;
+    *s++ = *d++;
     do {
         while (*d == ' ') {
             ++d;
         }
-    } while (*s++ = *d++);
+        *s++ = *d++;
+    } while (*s++);
 }
 
-// Function to get prefix and substring
 char* get_prefix_plus_substring(const char* input, char** func) {
-    // Find the substring in the input string
+    char* result;
     char* found = strstr(input, "_set");
-    int i;
+    int i, length;
     char* arr[] = {"read_set", "print_set", "union_set", "intersect_set", "sub_set", "symdiff_set", "stop"};
     if (!found) {
         printf(bad_cmd_name);
-        return NULL; // Substring not found
+        return NULL;
     }
 
-    // Calculate the length to copy (end of the substring within the input)
-    int length_to_copy = found - input + strlen("_set");
+    length = found - input + strlen("_set");
 
-    // Allocate memory for the result
-    char* result = (char*)malloc(length_to_copy + 1); // +1 for null terminator
+    result = (char*)malloc(length + 1);
     if (result == NULL) {
         perror("Failed to allocate memory");
         return NULL;
     }
 
-    // Copy the required portion of the string
-    strncpy(result, input, length_to_copy);
+    strncpy(result, input, length);
 
-    // Null-terminate the result
-    result[length_to_copy] = '\0';
+    result[length] = '\0';
 
     result = trim_spaces(result);
 
-    // Compare the result with the array of valid commands
     for (i = 0; i < 7; i++) {
         if (strcmp(result, arr[i]) == 0) {
             *func = result;
@@ -84,7 +95,7 @@ char* get_prefix_plus_substring(const char* input, char** func) {
     }
 
     printf(bad_cmd_name);
-    free(result); // Free allocated memory before returning NULL
+    free(result);
     return NULL;
 }
 
@@ -97,7 +108,6 @@ int is_integer(const char* str) {
     return (*endptr == '\0');
 }
 
-// Function to extract numbers from command
 char* get_arr_as_string(char* command) {
     char* comma_pos = strchr(command, ',');
     if (comma_pos == NULL) {
@@ -111,13 +121,13 @@ int calc_size(const char *str) {
     while (*str) {
         if (isdigit(*str) || (*str == '-' && isdigit(*(str + 1)))) {
             if (!on_num) {
-                on_num = 1; // Start of a new number
+                on_num = 1;
                 size++;
             }
-            comma_flag = 0; // Reset comma_flag if we are in a number
+            comma_flag = 0;
         } else if (*str == ',') {
             if (on_num) {
-                on_num = 0; // End of the current number
+                on_num = 0;
             } else if (comma_flag) {
                 printf(cons_c);
                 return -1;
@@ -152,17 +162,18 @@ int* get_arr_as_int(char* arr, int* size) {
     int *nums = NULL;
     int bound_test;
     int count = 0;
+    char *copy_arr, *token;
     *size = calc_size(arr);
     if(*size == -1){
         return NULL;
     }
-    char* copy_arr = (char*)malloc(strlen(arr) + 1);
+    copy_arr = (char*)malloc(strlen(arr) + 1);
     if (copy_arr == NULL) {
         return NULL;
     }
 
     strcpy(copy_arr, arr);
-    char *token = strtok(copy_arr, ",");
+    token = strtok(copy_arr, ",");
     while (token != NULL) {
         token = trim_spaces(token);
         if (is_integer(token)) {
@@ -202,76 +213,90 @@ int* get_arr_as_int(char* arr, int* size) {
     return nums;
 }
 
-int* get_sets(const char* command, const char* func, int* size) {
-    const char* set_prefix = "SET";
-    const char* delimiter = ", ";
-    char* set_type[6] = {"SETA", "SETB", "SETC", "SETD", "SETE", "SETF"};
-    int* sets = NULL;
-    int num_sets = 0;
-    int i, j;
+int* get_sets(char* command, const char* func, int* size) {
+    char* cmd_copy;
+    int* sets;
+    char set_name[5];
+    int set_count, len;
 
-    // Find the first occurrence of "SET" in the command
-    const char* found = strstr(command, set_prefix);
-    if (!found) {
-        printf(bad_set_name);
-        return NULL;
+    cmd_copy = command;
+    while(*cmd_copy && isspace(*cmd_copy)){
+        cmd_copy++;
+    }
+    cmd_copy += strlen(func);
+
+    while(*cmd_copy != 'S' && *cmd_copy){
+        if(*cmd_copy == ','){
+            printf(bad_c);
+            return NULL;
+        } else if (*cmd_copy == '-' || *cmd_copy == '_'){
+            printf("Illegal character.");
+            return NULL;
+        }
+        cmd_copy++;
     }
 
-    // Check if the function is "print_set" or "read_set"
-    if (strcmp(func, "print_set") == 0 || strcmp(func, "read_set") == 0) {
+    if(strcmp(func, "print_set") == 0 || strcmp(func, "read_set") == 0){
         *size = 1;
     } else {
         *size = 3;
     }
 
-    // Allocate memory for the sets
-    sets = (int*)malloc((*size) * sizeof(int));
-    if (!sets) {
-        printf("Error: Memory allocation failed.\n");
-        free(sets);
+    sets = (int*)malloc(sizeof(int) * (*size));
+    if(!sets){
+        printf("Memory allocation failed.\n");
         return NULL;
     }
 
-    for (i = 0; i < (*size); i++) {
-        // Check if the next set exists
-        if (!found) {
-            printf(miss_param);
-            free(sets);
-            return NULL;
+    set_count = 0;
+    while(*cmd_copy && set_count < *size){
+        while(*cmd_copy && isspace(*cmd_copy)){
+            cmd_copy++;
         }
-
-        // Extract the set name (e.g., SETA, SETB, etc.)
-        char set_name[5]; // Assuming maximum length of 3 (SETX)
-        strncpy(set_name, found, 4);
-        set_name[4] = '\0'; // Null-terminate the string
-
-        // Validate the set name
-        int valid_set = 0;
-        for (j = 0; j < 6; j++) {
-            if (strcmp(set_name, set_type[j]) == 0) {
-                valid_set = 1;
-                sets[i] = j;
-                break;
-            }
+        len = 0;
+        while(*cmd_copy && !isspace(*cmd_copy) && *cmd_copy != ',' && len < 5){
+            set_name[len++] = *cmd_copy++;
         }
-
-        if (!valid_set) {
+        set_name[len] = '\0';
+        if(!is_valid_set_name(set_name)){
             printf(bad_set_name);
             free(sets);
             return NULL;
         }
+        if(set_count < *size){
+            sets[set_count++] = get_set_index(set_name);
+        } else {
+            printf(ext_txt);
+            free(sets);
+            return NULL;
+        }
 
-        // Move to the next set (if any)
-        found = strstr(found + 1, delimiter);
-        if (found) {
-            found += strlen(delimiter); // Skip the delimiter
+        while(*cmd_copy && isspace(*cmd_copy)){
+            cmd_copy++;
+        }
+
+        if(*cmd_copy == ','){
+            cmd_copy++;
+            while(*cmd_copy && isspace(*cmd_copy)){
+                cmd_copy++;
+            }
+
+            if(strcmp(func, "print_set") == 0 && *cmd_copy){
+                printf(bad_c);
+                free(sets);
+                return NULL;
+            }
+
+        } else if (set_count < *size && *cmd_copy != '\0'){
+            printf(miss_param);
+            free(sets);
+            return NULL;
         }
     }
 
     return sets;
 }
 
-// Function to read command from input
 char* read_command(char* command, char** func) {
     int buffer = 1, txt_len = 0, found_comma = 0;
     int i;
@@ -300,8 +325,17 @@ char* read_command(char* command, char** func) {
     } while (command[txt_len - 1] != '\n' && command[txt_len - 1] != EOF);
     command[txt_len - 1] = '\0';
 
+
     printf("[USER INPUT] %s\n", command);
 
+    for(i = 0; command[i] != '\0' ; i++){
+        if(!(isalnum(command[i]) || isspace(command[i]) || command[i] == ',' || command[i] == '_' || command[i] == '-')) {
+            printf("%c\n", command[i]);
+            printf(invalid_input);
+            free(command);
+            return NULL;
+        }
+    }
     test = get_prefix_plus_substring(command, func);
     if (test == NULL) {
         free(command);
@@ -359,11 +393,6 @@ void analyze_command(char* command, const char* func, const int* set_pointers, S
         printf("Unknown command: %s\n", func);
     }
 }
-
-// Function to check if a string represents an integer
-
-
-// Function to convert array of numbers in string format to int array
 
 
 int main() {
