@@ -16,6 +16,27 @@
 #define miss_param "Missing parameter.\n"
 #define bad_set_name "Undefined set name.\n"
 
+char* trim_spaces(char* str) {
+    char* end;
+
+    // Trim leading space
+    while (isspace((unsigned char)*str)) str++;
+
+    // All spaces?
+    if (*str == 0)
+        return str;
+
+    // Trim trailing space
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) end--;
+
+    // Write new null terminator
+    *(end + 1) = 0;
+
+    return str;
+}
+
+
 void remove_spaces(char* s) {
     char* d = s;
     do {
@@ -52,7 +73,7 @@ char* get_prefix_plus_substring(const char* input, char** func) {
     // Null-terminate the result
     result[length_to_copy] = '\0';
 
-    remove_spaces(result);
+    result = trim_spaces(result);
 
     // Compare the result with the array of valid commands
     for (i = 0; i < 7; i++) {
@@ -126,25 +147,6 @@ int calc_size(const char *str) {
     return size;
 }
 
-char* trim_spaces(char* str) {
-    char* end;
-
-    // Trim leading space
-    while (isspace((unsigned char)*str)) str++;
-
-    // All spaces?
-    if (*str == 0)
-        return str;
-
-    // Trim trailing space
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) end--;
-
-    // Write new null terminator
-    *(end + 1) = 0;
-
-    return str;
-}
 
 int* get_arr_as_int(char* arr, int* size) {
     int *nums = NULL;
@@ -154,11 +156,11 @@ int* get_arr_as_int(char* arr, int* size) {
     if(*size == -1){
         return NULL;
     }
-    remove_spaces(arr);
     char* copy_arr = (char*)malloc(strlen(arr) + 1);
     if (copy_arr == NULL) {
         return NULL;
     }
+
     strcpy(copy_arr, arr);
     char *token = strtok(copy_arr, ",");
     while (token != NULL) {
@@ -211,7 +213,7 @@ int* get_sets(const char* command, const char* func, int* size) {
     // Find the first occurrence of "SET" in the command
     const char* found = strstr(command, set_prefix);
     if (!found) {
-        printf("Error: No valid SET found.\n");
+        printf(bad_set_name);
         return NULL;
     }
 
@@ -233,7 +235,7 @@ int* get_sets(const char* command, const char* func, int* size) {
     for (i = 0; i < (*size); i++) {
         // Check if the next set exists
         if (!found) {
-            printf("Error: Insufficient number of sets.\n");
+            printf(miss_param);
             free(sets);
             return NULL;
         }
@@ -254,7 +256,7 @@ int* get_sets(const char* command, const char* func, int* size) {
         }
 
         if (!valid_set) {
-            printf("Error: Invalid set name: %s\n", set_name);
+            printf(bad_set_name);
             free(sets);
             return NULL;
         }
