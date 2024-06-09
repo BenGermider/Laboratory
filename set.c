@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "set.h"
 
 
-void read_set(Set* set, int* arr, int arr_size){
+int read_set(Set* set, int* arr, int arr_size){
     int i;
     int byte_index, bit_index;
 
@@ -20,9 +19,11 @@ void read_set(Set* set, int* arr, int arr_size){
             exit(1);
         }
     }
+    return 0;
+
 }
 
-void print_set(Set* set){
+int print_set(Set* set){
     int byte, bit, index;
     int empty_flag = 0, beginning = 1;
     for (byte = 0; byte < 16; byte++) {
@@ -45,6 +46,7 @@ void print_set(Set* set){
         printf("The set is empty.");
     }
     printf("\n");
+    return 0;
 }
 
 int is_bit_on(Set* set, int byte, int bit){
@@ -54,7 +56,7 @@ int is_bit_on(Set* set, int byte, int bit){
     return 0;
 }
 
-void union_set(Set* set_a, Set* set_b, Set* set_c){
+int union_set(Set* set_a, Set* set_b, Set* set_c){
     int byte, bit;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
@@ -65,9 +67,11 @@ void union_set(Set* set_a, Set* set_b, Set* set_c){
             }
         }
     }
+    return 0;
+
 }
 
-void intersect_set(Set* set_a, Set* set_b, Set* set_c){
+int intersect_set(Set* set_a, Set* set_b, Set* set_c){
     int byte, bit;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
@@ -78,9 +82,11 @@ void intersect_set(Set* set_a, Set* set_b, Set* set_c){
             }
         }
     }
+    return 0;
+
 }
 
-void sub_set(Set* set_a, Set* set_b, Set* set_c){
+int sub_set(Set* set_a, Set* set_b, Set* set_c){
     int byte, bit;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
@@ -91,9 +97,10 @@ void sub_set(Set* set_a, Set* set_b, Set* set_c){
             }
         }
     }
+    return 0;
 }
 
-void symdiff_set(Set* set_a, Set* set_b, Set* set_c){
+int symdiff_set(Set* set_a, Set* set_b, Set* set_c){
     int byte, bit;
     for (byte = 0; byte < 16; byte++) {
         for (bit = 0; bit < 8; bit++) {
@@ -104,10 +111,12 @@ void symdiff_set(Set* set_a, Set* set_b, Set* set_c){
             }
         }
     }
+    return 0;
 }
 
-void stop(){
-
+int stop(){
+    printf("[TERMINATION] Turning off, have a nice day.\n");
+    return 1;
 }
 
 

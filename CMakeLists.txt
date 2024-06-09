@@ -7,7 +7,7 @@ add_executable(Laboraty
         myset.c
         set.c
         set.h
-        validation.c
-        validation.h)
+        myset.h
+)
 
 target_compile_options(Laboraty PRIVATE -ansi -Wall -pedantic)

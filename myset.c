@@ -18,20 +18,20 @@
 #define bad_set_name "Undefined set name.\n"
 #define invalid_input "Undefined character.\n"
 
-char* trim_spaces(char* str) {
+char* clear_edges(char* text) {
     char* end;
 
-    while (isspace((unsigned char)*str)) str++;
-
-    if (*str == 0)
-        return str;
-
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char)*end)) end--;
-
+    while (isspace(*text)){
+        text++;
+    }
+    if (*text == 0)
+        return text;
+    end = text + strlen(text) - 1;
+    while (end > text && isspace(*end)){
+        end--;
+    }
     *(end + 1) = 0;
-
-    return str;
+    return text;
 }
 
 int is_valid_set_name(char* set_name){
@@ -51,29 +51,41 @@ int get_set_index(char* set_name){
     return set_name[3] - 'A';
 }
 
-
-void remove_spaces(char* s) {
-    char* d = s;
-    *s++ = *d++;
-    do {
-        while (*d == ' ') {
-            ++d;
-        }
-        *s++ = *d++;
-    } while (*s++);
-}
-
-char* get_prefix_plus_substring(const char* input, char** func) {
-    char* result;
-    char* found = strstr(input, "_set");
+char* get_prefix_plus_substring(char* input, char** func) {
+    char* result, *io_cp;
+    char* found_set = strstr(input, "_set");
+    char* stop = strstr(input, "stop");
     int i, length;
-    char* arr[] = {"read_set", "print_set", "union_set", "intersect_set", "sub_set", "symdiff_set", "stop"};
-    if (!found) {
+    char* arr[] = {"read_set", "print_set", "union_set", "intersect_set", "sub_set", "symdiff_set"};
+    if (!found_set && !stop) {
         printf(bad_cmd_name);
         return NULL;
     }
 
-    length = found - input + strlen("_set");
+    if(stop){
+        io_cp = input;
+        while(*io_cp && isspace(*io_cp)){
+            io_cp++;
+        }
+        if(strncmp(io_cp, "stop", 4) != 0){
+            printf(bad_cmd_name);
+            return NULL;
+        }
+        result = (char*)malloc((sizeof(char) * 4) + 1);
+        strncpy(result, io_cp, 4);
+        result[4] = '\0';
+        io_cp += 4;
+        while(*io_cp){
+            if(!isspace(*io_cp)){
+                printf(ext_txt);
+                return NULL;
+            }
+            io_cp++;
+        }
+        *func = result;
+        return result;
+    }
+    length = found_set - input + strlen("_set");
 
     result = (char*)malloc(length + 1);
     if (result == NULL) {
@@ -82,30 +94,27 @@ char* get_prefix_plus_substring(const char* input, char** func) {
     }
 
     strncpy(result, input, length);
-
     result[length] = '\0';
 
-    result = trim_spaces(result);
+    result = clear_edges(result);
 
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 6; i++) {
         if (strcmp(result, arr[i]) == 0) {
             *func = result;
             return result;
         }
     }
-
-    printf(bad_cmd_name);
     free(result);
     return NULL;
 }
 
-int is_integer(const char* str) {
-    char* endptr;
-    strtol(str, &endptr, 10);
-    while (isspace((unsigned char)*endptr)) {
-        endptr++;
+int is_integer(const char* num) {
+    char* end_num;
+    strtol(num, &end_num, 10);
+    while (isspace((unsigned char)*end_num)) {
+        end_num++;
     }
-    return (*endptr == '\0');
+    return (*end_num == '\0');
 }
 
 char* get_arr_as_string(char* command) {
@@ -116,16 +125,29 @@ char* get_arr_as_string(char* command) {
     return comma_pos + 1;
 }
 
-int calc_size(const char *str) {
-    int size = 0, on_num = 0, comma_flag = 0, space_flag = 0;
-    while (*str) {
-        if (isdigit(*str) || (*str == '-' && isdigit(*(str + 1)))) {
+int calc_size(char *str) {
+    char* cpy;
+    int size = 0;
+    int on_num = 0;
+    int comma_flag = 0;
+
+    cpy = str;
+
+    while (*cpy) {
+        while (*cpy && isspace(*cpy)) {
+            cpy++;
+        }
+
+        if (isdigit(*cpy) || (*cpy == '-' && isdigit(*(cpy + 1)))) {
             if (!on_num) {
                 on_num = 1;
                 size++;
             }
             comma_flag = 0;
-        } else if (*str == ',') {
+            while (isdigit(*cpy) || (*cpy == '-' && isdigit(*(cpy + 1)))) {
+                cpy++;
+            }
+        } else if (*cpy == ',') {
             if (on_num) {
                 on_num = 0;
             } else if (comma_flag) {
@@ -133,23 +155,15 @@ int calc_size(const char *str) {
                 return -1;
             }
             comma_flag = 1;
-            space_flag = 0;
-        } else if (*str == ' ') {
-            if (on_num) {
-                on_num = 0;
-            }
-            if (!comma_flag) {
-                space_flag = 1;
-            }
+            cpy++;
         } else {
             printf(bad_set_member);
             printf(not_int);
             return -1;
         }
-        str++;
     }
 
-    if (space_flag) {
+    if (comma_flag) {
         printf(num_sep);
         return -1;
     }
@@ -175,7 +189,7 @@ int* get_arr_as_int(char* arr, int* size) {
     strcpy(copy_arr, arr);
     token = strtok(copy_arr, ",");
     while (token != NULL) {
-        token = trim_spaces(token);
+        token = clear_edges(token);
         if (is_integer(token)) {
             int* temp = realloc(nums, (count + 1) * sizeof(int));
             if (temp == NULL) {
@@ -189,7 +203,6 @@ int* get_arr_as_int(char* arr, int* size) {
                 printf(bad_set_member);
                 printf(range);
                 free(nums);
-                free(copy_arr);
                 return NULL;
             }
             nums[count++] = bound_test;
@@ -215,6 +228,7 @@ int* get_arr_as_int(char* arr, int* size) {
 
 int* get_sets(char* command, const char* func, int* size) {
     char* cmd_copy;
+    char* is_set;
     int* sets;
     char set_name[5];
     int set_count, len;
@@ -224,7 +238,13 @@ int* get_sets(char* command, const char* func, int* size) {
         cmd_copy++;
     }
     cmd_copy += strlen(func);
-
+    if(strcmp(func, "stop") != 0){
+        is_set = strstr(command, "SET");
+        if(!is_set){
+            printf(bad_set_name);
+            return NULL;
+        }
+    }
     while(*cmd_copy != 'S' && *cmd_copy){
         if(*cmd_copy == ','){
             printf(bad_c);
@@ -282,12 +302,12 @@ int* get_sets(char* command, const char* func, int* size) {
             }
 
             if(strcmp(func, "print_set") == 0 && *cmd_copy){
-                printf(bad_c);
+                printf(ext_txt);
                 free(sets);
                 return NULL;
             }
 
-        } else if (set_count < *size && *cmd_copy != '\0'){
+        } else if (set_count < *size){
             printf(miss_param);
             free(sets);
             return NULL;
@@ -330,7 +350,6 @@ char* read_command(char* command, char** func) {
 
     for(i = 0; command[i] != '\0' ; i++){
         if(!(isalnum(command[i]) || isspace(command[i]) || command[i] == ',' || command[i] == '_' || command[i] == '-')) {
-            printf("%c\n", command[i]);
             printf(invalid_input);
             free(command);
             return NULL;
@@ -338,11 +357,13 @@ char* read_command(char* command, char** func) {
     }
     test = get_prefix_plus_substring(command, func);
     if (test == NULL) {
+        printf(bad_cmd_name);
         free(command);
         return NULL;
     }
 
-    if (!found_comma && strcmp(test, "print_set") != 0) {
+
+    if (!found_comma && strcmp(test, "print_set") != 0 && strcmp(test, "stop") != 0){
         printf(missing_c);
         free(command);
         return NULL;
@@ -358,7 +379,7 @@ char* read_command(char* command, char** func) {
         }
     }
 
-    if (!(isupper(command[txt_len - 2]) || isdigit(command[txt_len - 2]) || isspace(command[txt_len -2]))) {
+    if (!(isalnum(command[txt_len - 2]) || isspace(command[txt_len -2]))) {
         printf(ext_txt);
         free(command);
         return NULL;
@@ -368,43 +389,39 @@ char* read_command(char* command, char** func) {
     return command;
 }
 
-void analyze_command(char* command, const char* func, const int* set_pointers, Set sets[]) {
+int analyze_command(char* command, const char* func, const int* set_pointers, Set sets[]) {
     char* array_as_string = NULL;
     int* nums = NULL;
-    int arr_size;
+    int arr_size, result = 0;
     if (strcmp(func, "print_set") == 0) {
-        print_set(&sets[set_pointers[0]]);
+        result = print_set(&sets[set_pointers[0]]);
     } else if (strcmp(func, "read_set") == 0) {
         array_as_string = get_arr_as_string(command);
         nums = get_arr_as_int(array_as_string, &arr_size);
-        read_set(&sets[set_pointers[0]], nums, arr_size);
+        if(!nums){
+            exit(1);
+        }
+        result = read_set(&sets[set_pointers[0]], nums, arr_size);
         free(nums);
     } else if (strcmp(func, "union_set") == 0) {
-        union_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
+        result = union_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "intersect_set") == 0) {
-        intersect_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
+        result = intersect_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "sub_set") == 0) {
-        sub_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
+        result = sub_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "symdiff_set") == 0) {
-        symdiff_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
+        result = symdiff_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "stop") == 0) {
-        stop();
-    } else {
-        printf("Unknown command: %s\n", func);
+        result = stop();
     }
+    return result;
 }
 
-
-int main() {
-    Set set_arr[6];
-    char* func = NULL;
-    char* command = NULL;
-    int *sets;
-    int size;
-    int i = 1;
+int run(char* command, Set set_arr[], char* func, int size, int* sets){
+    int result;
     command = (char*)malloc(1 * sizeof(char));
     if (command == NULL) {
-        printf("Failed to allocate memory");
+        printf("Failed to allocate memory\n");
         return 1;
     }
     memset(set_arr, 0, 6 * sizeof(Set));
@@ -412,19 +429,30 @@ int main() {
     do {
         printf("Enter the desired command:\n");
         command = read_command(command, &func);
+        if(command == NULL){
+            free(command);
+            return 1;
+        }
         sets = get_sets(command, func, &size);
-        if(command == NULL || sets == NULL){
+        if(sets == NULL){
             free(sets);
             free(command);
             return 1;
         }
 
-        analyze_command(command, func, sets, set_arr);
-        printf("Finished command no. %d\n", i++);
+        result = analyze_command(command, func, sets, set_arr);
         free(sets);
-    } while (strcmp(command, "stop") != 0);
+    } while (!result);
     free(command);
-
-
     return 0;
+    }
+
+
+int main(){
+    Set set_arr[6];
+    char* func = NULL;
+    char* command = NULL;
+    int *sets = NULL;
+    int size = 0;
+    return run(command, set_arr, func, size, sets);
 }
