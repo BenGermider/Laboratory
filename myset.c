@@ -345,8 +345,11 @@ char* read_command(char* command, char** func) {
     } while (command[txt_len - 1] != '\n' && command[txt_len - 1] != EOF);
     command[txt_len - 1] = '\0';
 
-
     printf("[USER INPUT] %s\n", command);
+
+    if(*command == '\0'){
+        return command;
+    }
 
     for(i = 0; command[i] != '\0' ; i++){
         if(!(isalnum(command[i]) || isspace(command[i]) || command[i] == ',' || command[i] == '_' || command[i] == '-')) {
@@ -392,7 +395,7 @@ char* read_command(char* command, char** func) {
 int analyze_command(char* command, const char* func, const int* set_pointers, Set sets[]) {
     char* array_as_string = NULL;
     int* nums = NULL;
-    int arr_size, result = 0;
+    int arr_size, result;
     if (strcmp(func, "print_set") == 0) {
         result = print_set(&sets[set_pointers[0]]);
     } else if (strcmp(func, "read_set") == 0) {
@@ -413,6 +416,9 @@ int analyze_command(char* command, const char* func, const int* set_pointers, Se
         result = symdiff_set(&sets[set_pointers[0]], &sets[set_pointers[1]], &sets[set_pointers[2]]);
     } else if (strcmp(func, "stop") == 0) {
         result = stop();
+    } else {
+        printf("Unknown command.\n");
+        return 0;
     }
     return result;
 }

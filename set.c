@@ -7,6 +7,10 @@ int read_set(Set* set, int* arr, int arr_size){
     int i;
     int byte_index, bit_index;
 
+    for(i = 0; i < 16; i++){
+        set->bits[i] = 0;
+    }
+
     for (i = 0; i < arr_size; i++) {
         if(arr[i] == -1 && i == arr_size - 1){
             break;
