@@ -1,2 +1,2 @@
-# Laboraty
-Repo consisting all exercises of laboraty course of B.Sc in CS.
+# Laboratory
+Repo consisting all exercises of laboratory course of B.Sc in CS.
