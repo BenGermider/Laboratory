@@ -1,0 +1,15 @@
+# ninja log v5
+2	59	7400641446963210	Laboraty.exe	7bf2525eda87903e
+55	92	7400717438447024	libhash_table.a	b8293d3148fdbe6b
+1	111	7400719423891768	build.ninja	4b7e19fcbe8cfffe
+1	40	7400641257038543	CMakeFiles/Laboraty.dir/linked_list.c.obj	cbcc53563fbe3ac5
+1	55	7400717438066939	CMakeFiles/hash_table.dir/hash_table.c.obj	bce17950dd640992
+1	58	7400638715989307	CMakeFiles/Laboraty.dir/hash_table.c.obj	f3e4042e81da53aa
+5	58	7400638715989307	CMakeFiles/Laboraty.dir/hash.c.obj	8e9a9ebd25c74983
+2	627	7400717019939327	CMakeFiles/hash.dir/hash.c.obj	b2418bb2fa9fcc94
+2	51	7400705998048026	CMakeFiles/linked_list.dir/linked_list.c.obj	47c0eb1cb98b7772
+51	102	7400705998566706	liblinked_list.a	be1304631abf50f2
+93	146	7400717438957145	hash.exe	7b5e58f440939f1a
+1	103	7400719423891768	build.ninja	4b7e19fcbe8cfffe
+5	46	7400719424871989	CMakeFiles/Laboraty.dir/linked_list.c.obj	cbcc53563fbe3ac5
+3	58	7400719424982022	CMakeFiles/Laboraty.dir/hash.c.obj	8e9a9ebd25c74983

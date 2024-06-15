@@ -1,0 +1,3 @@
+C:/Users/Ben/Desktop/OpenU/Laboraty/cmake-build-debug/CMakeFiles/Laboraty.dir
+C:/Users/Ben/Desktop/OpenU/Laboraty/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Ben/Desktop/OpenU/Laboraty/cmake-build-debug/CMakeFiles/rebuild_cache.dir
