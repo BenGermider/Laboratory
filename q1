@@ -1,0 +1,6 @@
+
+int * (*(*p)[2][2])(int,int);
+
+This phrase is a declaration of a pointer - p, that points to a multi-dimensional array of size 2x2. In that array,
+there are pointers to functions that receive two int parameters that return a pointer to an integer.
+
