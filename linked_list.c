@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "linked_list.h"
 
 Node* create_node(char* file_name){
     Node* new_node = (Node*)malloc(sizeof(Node));
     if(new_node == NULL){
-        printf("[ERROR] Failed to allocate memory, terminating...\n");
+        fprintf(stderr, "[ERROR] Failed to allocate memory, terminating...\n");
         exit(1);
     }
     new_node->file_name = file_name;
@@ -21,9 +22,13 @@ void add_to_tail(Node** head, char* file_name){
         return;
     }
     copy = *head;
-    while(copy->next != NULL){
+    while(copy->next && copy->file_name != file_name){
         copy = (Node*)copy->next;
     }
-    new_node = create_node(file_name);
-    copy->next = (struct Node*)new_node;
+    if(strcmp(copy->file_name, file_name) == 0){
+        copy->data++;
+    } else {
+        new_node = create_node(file_name);
+        copy->next = (struct Node*)new_node;
+    }
 }

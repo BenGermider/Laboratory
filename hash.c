@@ -1,10 +1,7 @@
-#include <stdio.h>
-#include "file_handler.h"
-#include "linked_list.h"
+#include "hash_table.h"
 
 int main(int argc, char* argv[]){
-    Node *node = create_node("HELLO");
-    add_to_tail(&node, "HELLO");
-    printf("%s\n", node->file_name);
+    HashTable *hash = init_hash();
+    run(argc, argv, hash);
     return 0;
 }
