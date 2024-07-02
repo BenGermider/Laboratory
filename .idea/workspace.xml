@@ -18,7 +18,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3074b8f9-6370-4435-b066-3fe4779cab88" name="Changes" comment="" />
+    <list default="true" id="3074b8f9-6370-4435-b066-3fe4779cab88" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -59,31 +61,31 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;C/C++ File.hash.c.executor&quot;: &quot;Run&quot;,
-    &quot;C/C++ File.main.c (1).executor&quot;: &quot;Run&quot;,
-    &quot;C/C++ File.main.c.executor&quot;: &quot;Run&quot;,
-    &quot;CMake Application.Laboraty.executor&quot;: &quot;Run&quot;,
-    &quot;CMake Application.hash.executor&quot;: &quot;Run&quot;,
-    &quot;CMake Debug.Laboraty.executor&quot;: &quot;Debug&quot;,
-    &quot;Makefile Target.all.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;&lt;unknown&gt;&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Ben/Desktop/OpenU/Laboraty&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "C/C++ File.hash.c.executor": "Run",
+    "C/C++ File.main.c (1).executor": "Run",
+    "C/C++ File.main.c.executor": "Run",
+    "CMake Application.Laboraty.executor": "Run",
+    "CMake Application.hash.executor": "Run",
+    "CMake Debug.Laboraty.executor": "Debug",
+    "Makefile Target.all.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "C:/Users/Ben/Desktop/OpenU/Laboratory",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\Ben\Desktop\OpenU\Laboraty" />
@@ -123,11 +125,11 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="CMake Debug.Laboraty" />
-      <item itemvalue="CMake Application.Laboraty" />
-      <item itemvalue="CMake Application.hash" />
       <item itemvalue="C/C++ File.hash.c" />
       <item itemvalue="C/C++ File.main.c (1)" />
+      <item itemvalue="CMake Application.Laboraty" />
+      <item itemvalue="CMake Application.hash" />
+      <item itemvalue="CMake Debug.Laboraty" />
       <item itemvalue="Makefile Target.all" />
     </list>
     <recent_temporary>
@@ -163,6 +165,7 @@
       <workItem from="1719662025225" duration="942000" />
       <workItem from="1719672863964" duration="84000" />
       <workItem from="1719944904496" duration="74000" />
+      <workItem from="1719947316908" duration="421000" />
     </task>
     <servers />
   </component>
