@@ -1,0 +1,21 @@
+Algorithm according to teachers:
+
+1) Read next line from src file. If EOF, move to 9.
+2) If the first value is a name of a macro shown in the macro table, switch it with the macro saved in table, and return to 1.
+3) First value is macr? If not, move to 6.
+4) Turn on macro flag.
+5) Push to macro table the macro name.
+6) Read next line from src file. If EOF, move to 9. If macro flag on but no endmacr, put the line in the macro table and delete the line. Otherwise return to 1.
+7) Endmacr found? If found, then delete the line from the file and continue. If not, return to 6.
+8) Turn on macro flag, return to 1.
+9) End - save post-pre-assembler file.
+
+==================================================================================
+
+A "DB" of macros is needed.
+I thought of making a directory called "macro_db" which stores files inside.
+The files are named after the macro name and they store the value itself. Then it can work like a hash-map when the key is a name of a file
+and the value is the file content.
+
+Can do a fopen(...) and if f == NULL, then no such macro.
+
