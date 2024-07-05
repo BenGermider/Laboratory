@@ -15,3 +15,7 @@ void clear_side_blanks(char** line){
     *(end_of_line + 1) = '\0';
     *line = line_copy;
 }
+
+char* spaces_and_strings(char* line){
+
+}

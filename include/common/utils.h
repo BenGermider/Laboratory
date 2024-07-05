@@ -3,4 +3,6 @@
 
 void clear_side_blanks(char**);
 
+char* spaces_and_strings(char*);
+
 #endif
