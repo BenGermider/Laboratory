@@ -115,3 +115,27 @@ void freeHashTable(HashTable* ht) {
     free(ht->table);
     free(ht);
 }
+
+void printHashTable(HashTable* ht) {
+    if (ht == NULL) {
+        printf("Hash table is NULL\n");
+        return;
+    }
+
+    printf("Hash Table Contents:\n");
+    printf("--------------------\n");
+    for (size_t i = 0; i < ht->size; i++) {
+        KeyVal* current = ht->table[i];
+        if (current != NULL) {
+            printf("Bucket %zu:\n", i);
+            while (current != NULL) {
+                printf("  Key: %s, Value: %s\n", current->key, current->value);
+                current = current->next;
+            }
+        }
+    }
+    printf("--------------------\n");
+    printf("Total items: %zu\n", ht->count);
+    printf("Table size: %zu\n", ht->size);
+    printf("Load factor: %.2f\n", (float)ht->count / ht->size);
+}

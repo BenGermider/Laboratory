@@ -29,4 +29,5 @@ char* get(HashTable* ht, char* key);
 
 void freeHashTable(HashTable* ht);
 
+void printHashTable(HashTable* ht);
 #endif

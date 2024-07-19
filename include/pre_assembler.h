@@ -3,11 +3,11 @@
 #include <stdio.h>
 #include "common/hash_table.h"
 
-char* is_valid(char* macro_name);
+int is_valid(char*, char*);
 
-char* handle_line(char* line, int* in_macro, HashTable*);
+char* analyze(char* line, int* in_macro, HashTable*, char*, char*);
 
-FILE* analyze(FILE*, FILE*);
+FILE* generate_file(FILE*, FILE*);
 
 int pre_assembler(char* name_of_file);
 #endif
