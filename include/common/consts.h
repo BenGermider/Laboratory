@@ -9,4 +9,6 @@
 
 #define MACRO_END "end_macr"
 
+#define MAX_MACRO_NAME_LEN 31
+
 #endif

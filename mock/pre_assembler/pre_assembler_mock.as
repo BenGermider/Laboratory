@@ -1,16 +1,8 @@
-MAIN: 	add	r3, LIST
-LOOP: 	prn	#48
+MAIN: 	add r3, LIST
+LOOP: 	prn #48
 		macr m_macr
 		cmp r3, #-6
-		bne	END
-		end_macr
-		macr nigga
-		cmp r3, #-6
-		bne	END
-		end_macr
-		macr stop
-		cmp r3, #-6
-		bne	END
+		bne END
 		end_macr
 		lea	STR, r6
 		inc r6
