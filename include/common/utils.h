@@ -3,8 +3,14 @@
 
 void clear_side_blanks(char**);
 
-char* spaces_and_strings(char*);
+char* get_word(char*);
 
 void free_space(int amount, ...);
+
+int is_num_legal(char*);
+
+int is_legal_string(char*);
+
+int is_ignorable(char*);
 
 #endif

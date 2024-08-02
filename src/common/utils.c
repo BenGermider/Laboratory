@@ -6,7 +6,7 @@
 #include "../../include/common/utils.h"
 
 
-void clear_side_blanks(char** line) {
+void clear_side_blanks(char** line){
     if (*line == NULL) {
         return;
     }
@@ -39,8 +39,24 @@ void clear_side_blanks(char** line) {
     *line = line_copy;
 }
 
-char* spaces_and_strings(char* line){
+char* get_word(char* line){
+    int len;
+    char* word;
+    char* space = strchr(line, ' ');
+    if(!space){
+        return line;
+    }
 
+    len = space - line;
+    word = malloc(len + 1);
+    if(!word){
+        printf("[ERROR] Failed to allocate memory");
+        return NULL;
+    }
+
+    strncpy(word, line, len);
+    word[len+1] = '\0';
+    return word;
 }
 
 void free_space(int amount, ...) {
@@ -57,3 +73,51 @@ void free_space(int amount, ...) {
 
     va_end(args);
 }
+
+int is_num_legal(char *num){
+    if(!isdigit(*num) || *num != '+' || *num != '-'){
+        return 1;
+    }
+    num++;
+    while(*num != '\0'){
+        if(!isdigit(*num)){
+            return 1;
+        }
+        num++;
+    }
+    return 0;
+}
+
+int is_legal_string(char* str){
+    char *end;
+    if (*str != '"') {
+        return 1;
+    }
+    str++;
+    end = strchr(str, '"');
+    if (end == NULL) {
+        return 1;
+    }
+    if (*(end + 1) != '\0') {
+        return 1;
+    }
+    return 0;
+}
+
+int is_ignorable(char *line){
+    char *copy = malloc(strlen(line) + 1);
+    if(!copy){
+        printf("[ERROR] Failed to allocate memory...\n");
+        return 0;
+    }
+    strcpy(copy, line);
+    copy[strlen(line)] = '\0';
+    clear_side_blanks(&copy);
+    if(*copy == ';' || *copy == '\0'){
+        free(copy);
+        return 1;
+    }
+    free(copy);
+    return 0;
+}
+
