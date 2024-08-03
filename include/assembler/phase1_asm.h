@@ -1,11 +1,39 @@
-//
-// Created by Ben on 7/20/2024.
-//
 
 #ifndef LABORATORY_PHASE1_ASM_H
 #define LABORATORY_PHASE1_ASM_H
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include "../../include/common/consts.h"
+#include "../../include/common/utils.h"
+#include "../../include/common/data_types.h"
+#include "../../include/common/library.h"
 
-void instruction(char*, char*);
+int is_reg(char *str);
+
+int is_operation(char *str);
+
+int is_valid_instruction(char* str);
+
+int is_valid_label(char *label);
+
+int store_or_src(char *instruction);
+
+void instruction(char* line, char* line_copy);
+
+void declare_sentence(instruction_sentence *sen);
+
+int* pull_numbers(char* data, size_t* size);
+
+instruction_sentence* store_data(char* line);
+
+int generate_file(FILE* src_file);
 
 char* get_line_copy(const char* origin_line);
+
+void get_file(const char* file_name, char** input_file);
+
+int assembler(const char* file_name);
+
 #endif //LABORATORY_PHASE1_ASM_H

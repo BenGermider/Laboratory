@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../../include/common/hash_table.h"
+#include "../../../include/common/collections/hash_table.h"
 
 
 unsigned int hash(char* key, size_t table_size) {

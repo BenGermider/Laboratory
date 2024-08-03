@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "../../include/assembler/pre_assembler.h"
-#include "../../include/common/hash_table.h"
+#include "../../include/common/collections/hash_table.h"
 #include "../../include/common/library.h"
 #include "../../include/common/utils.h"
 #include "../../include/common/consts.h"
 
 /**
  * Check validity of macro name
- * @param ht database of macros
+ * @param ht collections of macros
  * @param macro_line line where macro name is written
  * @param macro_name pointer for the macro name to be stored
  * @return if valid macro name.
@@ -81,7 +81,7 @@ char* analyze(char* line, int* in_macro, HashTable* ht, char* macro_name, char* 
     return line;
 }
 
-int generate_file(FILE *input_file, FILE *output_file) {
+int gen(FILE *input_file, FILE *output_file) {
     HashTable *ht = createHashTable();
     int in_macro = 0;
     char* to_output;
@@ -155,7 +155,7 @@ int pre_assembler(char* name_of_file) {
         return 1;
     }
 
-    result = generate_file(file_to_scan, file_to_write);
+    result = gen(file_to_scan, file_to_write);
     if(result){
         remove(output_file_name);
     }
