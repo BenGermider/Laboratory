@@ -39,26 +39,18 @@ int is_valid_instruction(char* str){
 }
 
 int is_valid_label(char *label){
-    char *str, *str_copy;
-    str = get_line_copy(label);
-    str_copy = str;
-
-    if(is_valid_instruction(str) || is_operation(str) || is_reg(str) || strlen(str) > MAX_LABEL_LEN){
-        free(str_copy);
+    if(is_valid_instruction(label) || is_operation(label) || is_reg(label) || strlen(label) > MAX_LABEL_LEN){
         return 0;
     }
-    if(!isalpha(*str)){
-        free(str_copy);
+    if(!isalpha(*label)){
         return 0;
     }
-    str++;
-    while(*str != '\0' && isalnum(*(str))){ str++; }
-
-    if(*str == ':' && *(str + 1) == '\0'){
-        free(str_copy);
+    label++;
+    while(*label != '\0' && isalnum(*(label))){ label++; }
+    if(*label == ':' && *(label + 1) == '\0'){
+        *label = '\0';
         return 1;
     }
-    free(str_copy);
     return 0;
 }
 
@@ -112,7 +104,7 @@ int* pull_numbers(char* line, size_t* size){
     copy[strlen(line)] = '\0';
     token = strtok(copy, ",");
     while(token != NULL){
-        clear_side_blanks(&token);
+        clear_side_blanks_remove_newline(&token);
         token_copy = token;
         while(*token_copy != '\0'){
             if(isspace(*token_copy)){
@@ -135,16 +127,51 @@ int* pull_numbers(char* line, size_t* size){
     return arr;
 }
 
-int* pull_ascii(char* line, size_t size){
+int* get_ascii(char* line, size_t *size){
+    int curr_size = 1, *arr, i, *temp;
+    clear_side_blanks_remove_newline(&line);
+    if(*line != '\"' || *(line + strlen(line) - 1) != '\"'){
+        printf("BAD STRING TYPE");
+        return NULL;
+    }
 
-    return NULL;
+    arr = (int*)malloc(curr_size * sizeof(int));
+    if(arr == NULL){
+        printf("FAILED TO ALLOCATE MEMORY\n");
+        return NULL;
+    }
+
+    for (i = 1; i < strlen(line) - 1; i++) {
+        if (line[i] == '\"') {
+            printf("BAD STRING\n");
+            free(arr);
+            return NULL;
+        }
+
+        arr[curr_size - 1] = (int)line[i];
+        curr_size++;
+
+        temp = (int*)realloc(arr, curr_size * sizeof(int));
+        if (temp == NULL) {
+            printf("BAD\n");
+            free(arr);
+            return NULL;
+        }
+        arr = temp;
+    }
+
+    arr[curr_size - 1] = '\0';
+    *size = curr_size;
+
+    return arr;
 }
 
 instruction_sentence* store_data(char* line){
+    int i;
     instruction_sentence *sen;
     char *label;
     size_t data_size;
-    char* string;
+    char* text;
     size_t pre_label_len = strchr(line, '.') - line;
 
     sen = (instruction_sentence*)malloc(sizeof(instruction_sentence));
@@ -170,13 +197,19 @@ instruction_sentence* store_data(char* line){
     }
 
     if(strcmp(get_word(strchr(line, '.')), ".data") == 0){
-        sen->data = pull_numbers((line+5), &data_size);
+        text = strstr(line, ".data") + strlen(".data");
+        sen->data = pull_numbers(text, &data_size);
         sen->size = data_size;
     } else {
-
+        text = strstr(line, ".string") + strlen(".string");
+        sen->data = get_ascii(text, &data_size);
+        sen->size = data_size;
     }
 
-    if(sen->label){
+    if(sen->data){
+        for(i = 0; i < sen->size; i++){
+            printf("[DATA] %d\n", *(sen->data + i));
+        }
        printf("[LABEL] %s\n", sen->label);
     }
 
@@ -189,6 +222,7 @@ int generate_file(FILE* src_file){
     instruction_sentence *i_s;
     command_sentence *c_s;
     char* copy;
+    char* x;
     while (!feof(src_file)) {
 
         if (fgets(line, MAX_LINE_LEN, src_file) == NULL) {
@@ -203,13 +237,14 @@ int generate_file(FILE* src_file){
         if(strchr(line, '.')){
             copy = get_line_copy(line);
             clear_side_blanks(&copy);
+            x = get_word(strchr(line, '.'));
             if(store_or_src(get_word(strchr(line, '.'))) > 0){
                 i_s = store_data(copy);
                 free(i_s);
             } else if (store_or_src(get_word(strchr(line, '.'))) < 0){
                 // instruction of src
             }
-
+            // add label into the label table
         }
 
         // read_command

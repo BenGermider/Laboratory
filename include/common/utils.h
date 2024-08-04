@@ -1,6 +1,8 @@
 #ifndef LABORATORY_UTILS_H
 #define LABORATORY_UTILS_H
 
+void clear_side_blanks_remove_newline(char** line);
+
 void clear_side_blanks(char**);
 
 char* get_word(char*);

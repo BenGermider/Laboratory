@@ -22,7 +22,7 @@ phase1_asm.o: src/assembler/phase1_asm.c include/assembler/phase1_asm.h include/
 	gcc -ansi -Wall -pedantic -c src/assembler/phase1_asm.c -o src/assembler/phase1_asm.o
 clear:
 	find . -name "*.o" -type f -delete
-	find . -name "*.am" -type f -delete
+	#find . -name "*.am" -type f -delete
 	find . -name "*.ob" -type f -delete
 	find . -name "*.ent" -type f -delete
 	find . -name "*.ext" -type f -delete

@@ -6,6 +6,39 @@
 #include "../../include/common/utils.h"
 
 
+void clear_side_blanks_remove_newline(char** line) {
+    char* start;
+    char* end;
+    size_t new_length;
+
+    if (*line == NULL) {
+        return;
+    }
+
+    start = *line;
+    while (isspace((unsigned char)*start)) {
+        start++;
+    }
+
+    end = *line + strlen(*line) - 1;
+    while (end > start && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    new_length = end - start + 1;
+
+    char* line_copy = (char*)malloc(new_length + 1);
+    if (line_copy == NULL) {
+        printf("[ERROR] Memory allocation failed.\n");
+        return;
+    }
+
+    strncpy(line_copy, start, new_length);
+    line_copy[new_length] = '\0';
+
+    *line = line_copy;
+}
+
 void clear_side_blanks(char** line){
     if (*line == NULL) {
         return;
@@ -55,7 +88,7 @@ char* get_word(char* line){
     }
 
     strncpy(word, line, len);
-    word[len+1] = '\0';
+    word[len] = '\0';
     return word;
 }
 
