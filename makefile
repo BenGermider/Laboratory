@@ -1,25 +1,39 @@
 all: assembler
 
-assembler: src/assembler/assembler.o src/common/collections/hash_table.o src/common/utils.o src/assembler/pre_assembler.o src/assembler/phase1_asm.o src/common/library.o
-	gcc -ansi -Wall -pedantic src/common/collections/hash_table.o src/assembler/assembler.o src/assembler/pre_assembler.o src/common/library.o src/assembler/phase1_asm.o src/common/utils.o -o assembler
+CODE = src/assembler/
+COMMON = src/common/
+COLLECTIONS = src/common/collections/
 
-utils.o: src/common/utils.c include/common/utils.h
-	gcc -ansi -Wall -pedantic -c src/common/utils.c -o src/common/utils.o
+CODE_H = include/assembler/
+COMMON_H = include/common/
+COLLECTIONS_H = include/common/collections/
 
-hash_table.o: src/common/collections/hash_table.c include/common/collections/hash_table.h
-	gcc -ansi -Wall -pedantic -c src/common/collections/hash_table.c -o src/common/collections/hash_table.o
+FLAGS = -ansi -Wall -pedantic
 
-library.o: src/common/library.c include/common/library.h
-	gcc -ansi -Wall -pedantic -c src/common/library.c -o src/common/library.o
+assembler: $(CODE)assembler.o $(COLLECTIONS)hash_table.o $(COMMON)utils.o $(CODE)pre_assembler.o $(COLLECTIONS)linked_list.o $(CODE)phase1_asm.o $(COMMON)library.o
+	gcc $(FLAGS) $(COLLECTIONS)hash_table.o $(CODE)assembler.o $(CODE)pre_assembler.o $(COMMON)library.o $(CODE)phase1_asm.o $(COLLECTIONS)linked_list.o $(COMMON)utils.o -o assembler
 
-pre_assembler.o: src/assembler/pre_assembler.c include/assembler/pre_assembler.h
-	gcc -ansi -Wall -pedantic -c src/assembler/pre_assembler.c -o src/assembler/pre_assembler.o
+utils.o: $(COMMON)utils.c $(COMMON_H)utils.h
+	gcc $(FLAGS) -c $(COMMON)utils.c -o $(COMMON)utils.o
 
-assembler.o: src/assembler/assembler.c include/common/collections/hash_table.h include/common/utils.h include/assembler/pre_assembler.h
-	gcc -ansi -Wall -pedantic -c src/assembler/assembler.c -o src/assembler/assembler.o
+hash_table.o: $(COLLECTIONS)hash_table.c $(COLLECTIONS_H)hash_table.h
+	gcc $(FLAGS) -c $(COLLECTIONS)hash_table.c -o $(COLLECTIONS)hash_table.o
 
-phase1_asm.o: src/assembler/phase1_asm.c include/assembler/phase1_asm.h include/common/consts.h include/common/utils.h include/common/data_types.h include/common/library.h
-	gcc -ansi -Wall -pedantic -c src/assembler/phase1_asm.c -o src/assembler/phase1_asm.o
+library.o: $(COMMON)library.c $(COMMON_H)library.h
+	gcc $(FLAGS) -c $(COMMON)library.c -o $(COMMON)library.o
+
+linked_list.o: $(COLLECTIONS)linked_list.c $(COLLECTIONS_H)linked_list.h
+	gcc $(FLAGS) -c $(COLLECTIONS)linked_list.c -o $(COLLECTIONS)linked_list.o
+
+pre_assembler.o: $(CODE)pre_assembler.c $(CODE_H)pre_assembler.h
+	gcc $(FLAGS) -c $(CODE)pre_assembler.c -o $(CODE)pre_assembler.o
+
+assembler.o: $(CODE)assembler.c $(COLLECTIONS_H)hash_table.h $(COMMON_H)utils.h $(CODE_H)pre_assembler.h
+	gcc $(FLAGS) -c $(CODE)assembler.c -o $(CODE)assembler.o
+
+phase1_asm.o: $(CODE)phase1_asm.c $(CODE_H)phase1_asm.h $(COLLECTIONS_H)linked_list.h $(COMMON_H)consts.h $(COMMON_H)utils.h $(COMMON_H)data_types.h $(COMMON_H)library.h
+	gcc $(FLAGS) -c $(CODE)phase1_asm.c -o $(CODE)phase1_asm.o
+
 clear:
 	find . -name "*.o" -type f -delete
 	#find . -name "*.am" -type f -delete

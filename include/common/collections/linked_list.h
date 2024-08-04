@@ -1,17 +1,22 @@
-#ifndef LABORATORY_LINKED_LIST_H
-#define LABORATORY_LINKED_LIST_H
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+
+#include "../data_types.h"
 
 typedef struct Node {
-    int data;
-    struct Node* next;
+    LabelData *data;
+    struct Node *prev;
+    struct Node *next;
 } Node;
 
-Node* create_node(int data);
+Node* create_node(int number, const char *text);
 
-void append(Node** head_ref, int new_data);
+void append(Node **head, int number, const char *text);
 
-void print_list(Node* node);
+int exists(Node*, char*);
 
-void delete_list(Node** head_ref);
+void print_list(Node *head);
 
-#endif
+void free_list(Node *head);
+
+#endif /* LINKED_LIST_H */

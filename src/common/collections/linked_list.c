@@ -1,56 +1,87 @@
-#include "../../../include/common/collections/linked_list.h"
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "../../../include/common/collections/linked_list.h"
 
+/* Create a new node with given data */
+Node* create_node(int number, const char *text) {
+    Node *new_node;
 
-
-Node* create_node(int data) {
-    Node* new_node = (Node*)malloc(sizeof(Node));
+    new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL) {
-        printf("Memory allocation failed\n");
-        exit(1);
+        perror("Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
     }
-    new_node->data = data;
+    new_node->data = (LabelData*)malloc(sizeof(LabelData));
+    if(new_node->data == NULL){
+        printf("[ERROR] Failed to allocate memory\n");
+        free(new_node);
+        exit(EXIT_FAILURE);
+    }
+    new_node->data->number = number;
+    new_node->data->text = (char *)malloc(strlen(text) + 1);
+    if (new_node->data->text == NULL) {
+        perror("Failed to allocate memory\n");
+        exit(EXIT_FAILURE);
+    }
+    strcpy(new_node->data->text, text);
+
+    new_node->prev = NULL;
     new_node->next = NULL;
+
     return new_node;
 }
 
-// Function to append a node to the end of the list
-void append(Node** head_ref, int new_data) {
-    Node* new_node = create_node(new_data);
-    Node* last = *head_ref;
-
-    if (*head_ref == NULL) {
-        *head_ref = new_node;
+/* Append a new node to the end of the list */
+void append(Node **head, int number, const char *text) {
+    Node *new_node;
+    Node *temp;
+    new_node = create_node(number, text);
+    if (*head == NULL) {
+        *head = new_node;
         return;
     }
 
-    while (last->next != NULL) {
-        last = last->next;
+    temp = *head;
+    while (temp->next != NULL) {
+        temp = temp->next;
     }
-
-    last->next = new_node;
+    temp->next = new_node;
+    new_node->prev = temp;
 }
 
-// Function to print the linked list
-void print_list(Node* node) {
-    while (node != NULL) {
-        printf("%d -> ", node->data);
-        node = node->next;
+/* Check if a node with a given number exists in the list */
+int exists(Node *head, char* label) {
+    Node *temp;
+
+    temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->data->text, label) == 0) {
+            return 1;  /* Found */
+        }
+        temp = temp->next;
     }
-    printf("NULL\n");
+    return 0;  /* Not found */
 }
 
-// Function to delete the entire linked list
-void delete_list(Node** head_ref) {
-    Node* current = *head_ref;
-    Node* next;
+void print_list(Node *head) {
+    Node *temp;
 
-    while (current != NULL) {
-        next = current->next;
-        free(current);
-        current = next;
+    temp = head;
+    while (temp != NULL) {
+        printf("Number: %d, Text: %s\n", temp->data->number, temp->data->text);
+        temp = temp->next;
     }
+}
 
-    *head_ref = NULL;
+/* Free all nodes in the list */
+void free_list(Node *head) {
+    Node *temp;
+
+    while (head != NULL) {
+        temp = head;
+        head = head->next;
+        free(temp->data->text);  /* Free the duplicated string */
+        free(temp);
+    }
 }

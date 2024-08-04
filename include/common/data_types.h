@@ -17,12 +17,17 @@ typedef struct {
     char* name;
 } Reg;
 
+typedef struct label_data {
+    int number;
+    char *text;
+} LabelData;
+
 typedef struct {
     char *label;
     int *data;
     size_t size;
     int src;
-} instruction_sentence;
+} InstructionSentence;
 
 typedef struct {
     char *label;
@@ -30,6 +35,6 @@ typedef struct {
     char *src;
     char *dest;
     int ARE;
-} command_sentence;
+} CommandSentence;
 
 #endif

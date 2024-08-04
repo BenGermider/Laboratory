@@ -7,6 +7,7 @@
 #include "../../include/common/utils.h"
 #include "../../include/common/data_types.h"
 #include "../../include/common/library.h"
+#include "../../include/common/collections/linked_list.h"
 
 int is_reg(char *str){
     int i;
@@ -83,7 +84,7 @@ void instruction(char* line, char* line_copy){
 }
 
 
-void declare_sentence(instruction_sentence *sen){
+void declare_sentence(InstructionSentence *sen){
     sen->label = NULL;
     sen->data = NULL;
     sen->src = 0;
@@ -108,6 +109,8 @@ int* pull_numbers(char* line, size_t* size){
         token_copy = token;
         while(*token_copy != '\0'){
             if(isspace(*token_copy)){
+                free(copy);
+                free(arr);
                 printf("[ERROR] Numbers are not seperated properly\n");
                 return NULL;
             }
@@ -118,12 +121,14 @@ int* pull_numbers(char* line, size_t* size){
             arr = (int*)realloc(arr, (1 + i++)*sizeof(int));
             if(arr == NULL){
                 printf("[ERROR] Failed to allocate memory\n");
+                free(copy);
                 return NULL;
             }
         }
         token = strtok(NULL, ",");
     }
     *size = i;
+    free(copy);
     return arr;
 }
 
@@ -166,15 +171,26 @@ int* get_ascii(char* line, size_t *size){
     return arr;
 }
 
-instruction_sentence* store_data(char* line){
+int insert_label_table(Node **database, char *label, int lines){
+    if(!exists(*database, label)){
+        append(database, lines, label);
+    } else {
+        printf("[ERROR] Label already exists.\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+InstructionSentence* store_data(char* line){
     int i;
-    instruction_sentence *sen;
+    InstructionSentence *sen;
     char *label;
     size_t data_size;
     char* text;
     size_t pre_label_len = strchr(line, '.') - line;
 
-    sen = (instruction_sentence*)malloc(sizeof(instruction_sentence));
+    sen = (InstructionSentence*)malloc(sizeof(InstructionSentence));
     if(!sen){
         printf("[ERROR] Failed to allocate memory\n");
         return NULL;
@@ -216,11 +232,11 @@ instruction_sentence* store_data(char* line){
     return sen;
 }
 
-int generate_file(FILE* src_file){
-    int IC = 0, DC = 0, L = 0, error_flag = 0;
+int generate_file(FILE* src_file, Node* labels){
+    int IC = 0, DC = 0, L = 1, error_flag = 0;
     char* line = (char*)malloc(MAX_LINE_LEN);
-    instruction_sentence *i_s;
-    command_sentence *c_s;
+    InstructionSentence *i_s;
+    CommandSentence *c_s;
     char* copy;
     char* x;
     while (!feof(src_file)) {
@@ -237,19 +253,22 @@ int generate_file(FILE* src_file){
         if(strchr(line, '.')){
             copy = get_line_copy(line);
             clear_side_blanks(&copy);
-            x = get_word(strchr(line, '.'));
             if(store_or_src(get_word(strchr(line, '.'))) > 0){
                 i_s = store_data(copy);
+                if(i_s->label){
+                    insert_label_table(&labels, i_s->label, L);
+                }
                 free(i_s);
             } else if (store_or_src(get_word(strchr(line, '.'))) < 0){
                 // instruction of src
             }
-            // add label into the label table
+
         }
 
         // read_command
-
+        L++;
     }
+    print_list(labels);
     return error_flag;
 }
 
@@ -278,6 +297,7 @@ void get_file(const char* file_name, char** input_file){
 int assembler(const char* file_name){
     char* src_file_name;
     FILE *obj, *ext, *ent, *assembly;
+    Node* labels = NULL;
     get_file(file_name, &src_file_name);
 
     assembly = fopen(src_file_name, "r");
@@ -287,7 +307,7 @@ int assembler(const char* file_name){
         return 1;
     }
 
-    generate_file(assembly);
+    generate_file(assembly, labels);
 
     return 0;
 }

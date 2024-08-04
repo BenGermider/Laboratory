@@ -9,6 +9,7 @@
 #include "../../include/common/utils.h"
 #include "../../include/common/data_types.h"
 #include "../../include/common/library.h"
+#include "../common/collections/linked_list.h"
 
 int is_reg(char *str);
 
@@ -22,13 +23,13 @@ int store_or_src(char *instruction);
 
 void instruction(char* line, char* line_copy);
 
-void declare_sentence(instruction_sentence *sen);
+void declare_sentence(InstructionSentence *sen);
 
 int* pull_numbers(char* data, size_t* size);
 
-instruction_sentence* store_data(char* line);
+InstructionSentence* store_data(char* line);
 
-int generate_file(FILE* src_file);
+int generate_file(FILE*, Node*);
 
 char* get_line_copy(const char* origin_line);
 
