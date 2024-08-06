@@ -13,7 +13,7 @@ Node* create_node(int number, const char *text);
 
 void append(Node **head, int number, const char *text);
 
-int exists(Node*, char*);
+int exists(Node*, char*, int);
 
 void print_list(Node *head);
 

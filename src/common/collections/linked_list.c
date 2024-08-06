@@ -51,12 +51,15 @@ void append(Node **head, int number, const char *text) {
 }
 
 /* Check if a node with a given number exists in the list */
-int exists(Node *head, char* label) {
+int exists(Node *head, char* label, int invalid) {
     Node *temp;
 
     temp = head;
     while (temp != NULL) {
         if (strcmp(temp->data->text, label) == 0) {
+            if(invalid) {
+                printf("[ERROR] Invalid usage of source declaration on label.\n");
+            }
             return 1;  /* Found */
         }
         temp = temp->next;

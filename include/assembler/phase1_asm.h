@@ -17,7 +17,7 @@ int is_operation(char *str);
 
 int is_valid_instruction(char* str);
 
-int is_valid_label(char *label);
+int is_valid_label(char *label, int);
 
 int store_or_src(char *instruction);
 
@@ -29,7 +29,7 @@ int* pull_numbers(char* data, size_t* size);
 
 InstructionSentence* store_data(char* line);
 
-int generate_file(FILE*, Node*);
+int generate_file(FILE*, Node*, Node*, Node*);
 
 char* get_line_copy(const char* origin_line);
 
