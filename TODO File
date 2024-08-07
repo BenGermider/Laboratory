@@ -1,0 +1,9 @@
+2) Entry / Extern files
+
+3) Implement label table
+
+4) Error handle
+
+5) Read and understand second pass
+
+6) For now, pre-assembler creates and deletes if there's a failure, change it.

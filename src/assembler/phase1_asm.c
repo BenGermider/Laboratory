@@ -271,6 +271,22 @@ void generate_command(CommandSentence *c_s){
     c_s->ARE = 0;
 }
 
+void get_command(CommandSentence* c_s, char* command){
+    int i;
+    clear_side_blanks_remove_newline(&command);
+    for(i = 0; i < 16 ; i++){
+        if(strcmp(get_word(command), OPERATIONS[i].name) == 0){
+            c_s->operation = i;
+            return;
+        }
+    }
+}
+
+void args(CommandSentence* c_s, char* command){
+    int args_count = OPERATIONS[c_s->operation].arg_count;
+
+}
+
 CommandSentence *pull_command(char *command, int line){
     CommandSentence *c_s = NULL;
     size_t pre_label_len;
@@ -289,14 +305,22 @@ CommandSentence *pull_command(char *command, int line){
             return NULL;
         }
         strncpy(label, command, pre_label_len);
+
+        /* TODO: SPACE AFTER COMMA */
+
         if(is_valid_label(label, 0)){
             c_s->label = label;
         }
 
+        command += pre_label_len + 1;
     }
 
+    get_command(c_s, command);
+    if(c_s->operation == -1){
+        /* TODO: ILLEGAL COMMAND HANDLING */
+        return NULL;
+    }
     return c_s;
-
 }
 
 int generate_file(FILE* src_file, Node* labels, Node* externals, Node* entries){
