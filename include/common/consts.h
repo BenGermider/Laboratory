@@ -11,4 +11,8 @@
 
 #define MAX_MACRO_NAME_LEN 31
 
+#define LAST_ADDRESS 4095
+
+#define FIRST_ADDRESS 100
+
 #endif

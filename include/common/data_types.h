@@ -18,7 +18,7 @@ typedef struct {
 } Reg;
 
 typedef struct label_data {
-    int number;
+    int line;
     char *text;
 } LabelData;
 
@@ -27,14 +27,31 @@ typedef struct {
     int *data;
     size_t size;
     int src;
+    int pos;
 } InstructionSentence;
 
 typedef struct {
     char *label;
+    int pos;
     int operation;
     char *src;
     char *dest;
-    int ARE;
+    int word_count;
 } CommandSentence;
+
+typedef union {
+    InstructionSentence* instruction;
+    CommandSentence* command;
+} Sentence;
+
+typedef enum {
+    INSTRUCTION,
+    COMMAND
+} SentenceType;
+
+typedef enum {
+    DESTINATION = 1,
+    SOURCE = 2
+} OPERAND;
 
 #endif

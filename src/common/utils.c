@@ -75,12 +75,12 @@ void clear_side_blanks(char** line){
 char* get_word(char* line){
     int len;
     char* word;
-    char* space = strchr(line, ' ');
-    if(!space){
+    char* new_word = strpbrk(line, ", \t\n\v\f\r");
+    if(!new_word){
         return line;
     }
 
-    len = space - line;
+    len = new_word - line;
     word = malloc(len + 1);
     if(!word){
         printf("[ERROR] Failed to allocate memory");

@@ -18,7 +18,7 @@ Node* create_node(int number, const char *text) {
         free(new_node);
         exit(EXIT_FAILURE);
     }
-    new_node->data->number = number;
+    new_node->data->line = number;
     new_node->data->text = (char *)malloc(strlen(text) + 1);
     if (new_node->data->text == NULL) {
         perror("Failed to allocate memory\n");
@@ -72,7 +72,7 @@ void print_list(Node *head) {
 
     temp = head;
     while (temp != NULL) {
-        printf("Number: %d, Text: %s\n", temp->data->number, temp->data->text);
+        printf("Number: %d, Text: %s\n", temp->data->line, temp->data->text);
         temp = temp->next;
     }
 }

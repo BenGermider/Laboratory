@@ -8,6 +8,7 @@
 #include "../../include/common/data_types.h"
 #include "../../include/common/library.h"
 #include "../../include/common/collections/linked_list.h"
+#include "../../include/common/collections/sentence_list.h"
 
 int is_reg(char *str){
     int i;
@@ -39,22 +40,21 @@ int is_valid_instruction(char* str){
     return 0;
 }
 
-int is_valid_label(char *label, int is_decl){
-    clear_side_blanks_remove_newline(&label);
+int is_valid_label(char **label, int is_decl) {
+    clear_side_blanks_remove_newline(label);
+    char *p = *label;
 
-    int i = 1;
-    if(is_valid_instruction(label) || is_operation(label) || is_reg(label) || strlen(label) > MAX_LABEL_LEN){
+    if(!isalpha(*p)){
         return 0;
     }
-    if(!isalpha(*label)){
-        return 0;
+    p++;
+    while(*p != '\0' && isalnum(*p)) {
+        p++;
     }
-    label++;
-    while(*label != '\0' && isalnum(*(label))){ label++; i++; }
-    if(is_decl && *label == ':' && *(label + 1) == '\0') {
-        *(label) = '\0';  /* TODO: FIX */
+    if(is_decl && *p == ':' && *(p + 1) == '\0') {
+        *p = '\0';
         return 1;
-    } else if (!is_decl && *label == '\0' || isspace(*label)){
+    } else if (!is_decl && (*p == '\0' || isspace(*p))) {
         return 1;
     }
     return 0;
@@ -93,6 +93,7 @@ void declare_sentence(InstructionSentence *sen){
     sen->data = NULL;
     sen->src = 0;
     sen->size = 0;
+    sen->pos = 0;
 }
 
 int* pull_numbers(char* line, size_t* size){
@@ -187,7 +188,6 @@ int insert_label_table(Node **database, char *label, int lines){
 }
 
 InstructionSentence* store_data(char* line){
-    int i;
     InstructionSentence *sen;
     char *label;
     size_t data_size;
@@ -202,7 +202,7 @@ InstructionSentence* store_data(char* line){
 
     declare_sentence(sen);
 
-    pre_label_len= strchr(line, '.') - line;
+    pre_label_len = strchr(line, '.') - line;
 
     if(pre_label_len > 0){
         label = malloc(pre_label_len + 1);
@@ -211,8 +211,12 @@ InstructionSentence* store_data(char* line){
             return NULL;
         }
         strncpy(label, line, pre_label_len);
-        if(is_valid_label(label, 1)){
+        if(is_valid_label(&label, 1)){
             sen->label = label;
+        } else {
+            free(label);
+            free(sen);
+            return NULL;
         }
     }
 
@@ -242,14 +246,14 @@ InstructionSentence* src_handling(char* line, int src_index){
 
     if(strcmp(get_word(strchr(line, '.')), INSTRUCTIONS[2].name) == 0){
         label = strstr(line, INSTRUCTIONS[2].name) + strlen(INSTRUCTIONS[2].name);
-        if(is_valid_label(label, 0)){
+        if(is_valid_label(&label, 0)){
             i_s->label = label;
         } else {
             return NULL;
         }
     } else {
         label = strstr(line, INSTRUCTIONS[3].name) + strlen(INSTRUCTIONS[3].name);
-        if(is_valid_label(label, 0)){
+        if(is_valid_label(&label, 0)){
             i_s->label = label;
             i_s->src = 1;
         } else {
@@ -265,10 +269,11 @@ void insert_source_label(Node** list, char* label, int line){
 
 void generate_command(CommandSentence *c_s){
     c_s->label = NULL;
+    c_s->pos = 0;
     c_s->src = NULL;
     c_s->dest = NULL;
     c_s->operation = -1;
-    c_s->ARE = 0;
+    c_s->word_count = 0;
 }
 
 void get_command(CommandSentence* c_s, char* command){
@@ -283,8 +288,82 @@ void get_command(CommandSentence* c_s, char* command){
 }
 
 void args(CommandSentence* c_s, char* command){
+    char *sus_as_arg;
     int args_count = OPERATIONS[c_s->operation].arg_count;
+    if(c_s->operation == -1){
+        /* TODO: ILLEGAL COMMAND HANDLING */
+        return;
+    }
+    clear_side_blanks(&command);
+    if(!args_count){ // ZERO ARGS
+        if(*command != '\0'){
+            printf("YOU GAY\n");
+        }
+    } else if (args_count == 1) { // ONE ARG
+        if(strpbrk(command, ",: \t\n\v\f\r") != NULL){
+            printf("BAD SHET\n");
+        }
+        c_s->dest = command;
+    } else { // TWO ARGS
+        sus_as_arg = get_word(command);
+        if(sus_as_arg[strlen(sus_as_arg) - 1] == ','){
+            sus_as_arg[strlen(sus_as_arg) - 1] = '\0';
+        }
+        c_s->src = sus_as_arg;
+        command += strlen(sus_as_arg) + 1;
+        clear_side_blanks(&command);
+        c_s->dest = get_word(command);
+        command += strlen(c_s->dest) + 1;
+        if(*command != '\0'){
+            printf("WELL THATS A PROBLEM NIGGA\n");
+        }
+    }
+}
 
+int reg_arg(char* operand){
+    char *copy;
+
+    if(!operand){
+        return 0;
+    }
+
+    if(is_reg(operand)){
+        return 1;
+    } else {
+        if(*operand == '*'){
+            copy = operand + 1;
+            if(is_reg(copy)){
+                return 1;
+            }
+        } else {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+void word_count(CommandSentence* c_s){
+    if(OPERATIONS[c_s->operation].arg_count == 0){
+        c_s->word_count = 1;
+    } else if(OPERATIONS[c_s->operation].arg_count == 1){
+        c_s->word_count = 2;
+    } else {
+        if(reg_arg(c_s->src) && reg_arg(c_s->dest)){
+            c_s->word_count = 2;
+        } else {
+            c_s->word_count = 3;
+        }
+    }
+}
+
+void analyze_command(CommandSentence* c_s, char* command){
+    get_command(c_s, command);
+    if(c_s->operation == -1){
+        /* TODO: ILLEGAL COMMAND HANDLING */
+        return;
+    }
+    args(c_s,  strstr(command, OPERATIONS[c_s->operation].name) + strlen(OPERATIONS[c_s->operation].name));
+    word_count(c_s);
 }
 
 CommandSentence *pull_command(char *command, int line){
@@ -308,29 +387,30 @@ CommandSentence *pull_command(char *command, int line){
 
         /* TODO: SPACE AFTER COMMA */
 
-        if(is_valid_label(label, 0)){
+        if(is_valid_label(&label, 0)){
             c_s->label = label;
         }
 
         command += pre_label_len + 1;
     }
 
-    get_command(c_s, command);
+    analyze_command(c_s, command);
     if(c_s->operation == -1){
         /* TODO: ILLEGAL COMMAND HANDLING */
         return NULL;
     }
+
     return c_s;
 }
 
-int generate_file(FILE* src_file, Node* labels, Node* externals, Node* entries){
-    int IC = 0, DC = 0, L = 1, error_flag = 0;
+int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, SentenceList* code){
+    int IC = 0, DC = 0, L = 0, error_flag = 0;
     char* line = (char*)malloc(MAX_LINE_LEN);
     InstructionSentence *i_s;
     CommandSentence *c_s;
     char* copy;
     char* x;
-    while (!feof(src_file)) {
+    while (!feof(src_file) && DC + IC <= LAST_ADDRESS - FIRST_ADDRESS) {
 
         if (fgets(line, MAX_LINE_LEN, src_file) == NULL) {
             error_flag = 1;
@@ -343,40 +423,131 @@ int generate_file(FILE* src_file, Node* labels, Node* externals, Node* entries){
 
         copy = get_line_copy(line);
         clear_side_blanks_remove_newline(&copy);
-        if(strchr(line, '.')){
-            if(store_or_src(get_word(strchr(line, '.'))) > 0){
+        if(strchr(line, '.')) {
+            if (store_or_src(get_word(strchr(line, '.'))) > 0) {
                 i_s = store_data(copy);
-                if(i_s->label){
-                    insert_label_table(&labels, i_s->label, L);
+                if (i_s->label) {
+                    insert_label_table(labels, i_s->label, IC + 100 + DC);
                 }
-                free(i_s);
-            } else if (store_or_src(get_word(strchr(line, '.'))) < 0){
+                DC += i_s->size;
+                add_code(code, i_s, INSTRUCTION);
+            } else if (store_or_src(get_word(strchr(line, '.'))) < 0) {
                 i_s = src_handling(copy, L);
-                if(i_s == NULL){
+                if (i_s == NULL) {
                     printf("BAD NAME\n");
                     continue;
                 }
-                if(i_s->src == 0 && !exists(externals, i_s->label, 1)){
-                    insert_source_label(&entries, i_s->label, L);
-                } else if(i_s->src == 1 && !exists(entries, i_s->label, 1)){
-                    insert_source_label(&externals, i_s->label, L);
+                if (i_s->src == 0 && !exists(*externals, i_s->label, 1)) {
+                    insert_source_label(entries, i_s->label, L);
+                } else if (i_s->src == 1 && !exists(*entries, i_s->label, 1)) {
+                    insert_source_label(externals, i_s->label, L);
                 }
             }
-        }
-
-        else {
+        } else {
             c_s = pull_command(copy, L);
             if(c_s != NULL){
-                IC++;
                 if(c_s->label != NULL){
-                    // ADD TO LABEL TABLE
-                    printf("ACTUALLY GOT LABEL %s\n", c_s->label);
+                    insert_label_table(labels, c_s->label, IC + 100);
                 }
+                IC += c_s->word_count;
+                add_code(code, c_s, COMMAND);
             }
         }
-        L++;
     }
     return error_flag;
+}
+
+int get_operand_type(char* operand){
+    if(operand == NULL) {
+        return -1;
+    } else if (*operand == '#' && is_num_legal(operand + 1)){
+        return 0;
+    } else if (is_reg(operand)) {
+        return 3;
+    } else if (*operand == '*' && is_reg(operand + 1)){
+        return 2;
+    } else {
+        return 1;
+    }
+}
+
+short int get_src(char* operand, Node** labels,  Node** entries, Node** externals){
+    if(!exists(*labels ,operand, 0) && !exists(*entries ,operand, 0) && !exists(*externals ,operand, 0)){
+        return -1;
+    } if (exists(*externals, operand, 0)){
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+short int operation_as_num(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals){
+    int op = 0;
+    int padding;
+    op |= c_s->operation << 11;
+    padding = get_operand_type(c_s->src);
+    if(padding >= 0){
+        op |= (1 << (7 + padding));
+    }
+    padding = get_operand_type(c_s->dest);
+    if(padding >= 0){
+        op |= (1 << (3 + padding));
+    }
+    op |= 4;
+    return op;
+}
+
+
+
+short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals) {
+    int i;
+    short int* machine_code = (short int*)calloc(c_s->word_count, sizeof(short int));
+    if (!machine_code) {
+        printf("FAILED TO ALLOCATE MEMORY.\n");
+        exit(1);
+    }
+    machine_code[0] = operation_as_num(c_s, labels, entries, externals);
+    for(i = 1; i < c_s->word_count; i++){
+
+    }
+
+
+    return machine_code;
+}
+
+void printBinary(short int num) {
+    int bits = sizeof(short int) * 8; // Calculate the number of bits in a short int
+
+    for (int i = bits - 1; i >= 0; i--) {
+        putchar((num & (1 << i)) ? '1' : '0');
+    }
+    printf("\n");
+}
+
+int second_pass(const char* file_name, Node** labels,  Node** entries, Node** externals, SentenceList* code){
+    int IC = 0, i;
+    SenNode* current_line;
+    short int* translation;
+    short int* machine_code = (short int*)calloc(code->size, sizeof(short int));
+    if(!machine_code){ printf("FAILED TO ALLOCATE MEMORY.\n"); exit(1); }
+
+    current_line = code->head;
+    while(current_line != NULL && IC <= LAST_ADDRESS - FIRST_ADDRESS){
+        if(current_line->type == COMMAND){
+            translation = get_command_code(current_line->sentence.command);
+            if(translation != NULL){
+                for(i = 0; i < current_line->sentence.command->word_count; i++){
+                    printBinary(translation[i]);
+                    machine_code[IC++] = translation[i];
+                }
+                free(translation);
+            }
+        }
+        IC++;
+    }
+
+    free(machine_code);
+    return 0;
 }
 
 char* get_line_copy(const char* origin_line){
@@ -407,6 +578,8 @@ int assembler(const char* file_name){
     Node* externals = NULL;
     Node* entries = NULL;
     Node* labels = NULL;
+    SentenceList* code = NULL;
+
     get_file(file_name, &src_file_name);
 
     assembly = fopen(src_file_name, "r");
@@ -416,7 +589,20 @@ int assembler(const char* file_name){
         return 1;
     }
 
-    generate_file(assembly, labels, externals, entries);
+    code = (SentenceList*)malloc(sizeof(SentenceList));
+    if (code == NULL) {
+        printf("[ERROR] Failed to allocate memory for SentenceList\n");
+        return 1;
+    }
+    code->head = NULL;
+    code->size = 0;
+
+    first_pass(assembly, &labels, &externals, &entries, code);
+    second_pass(file_name, &labels, &entries, &externals , code);
+
+
+    freeSentenceList(code);
+    free(code);
 
     return 0;
 }
