@@ -12,6 +12,9 @@
 
 int is_reg(char *str){
     int i;
+    if(str == NULL){
+        return 0;
+    }
     for(i = 0; i < 8; i++){
         if(strcmp(str, REGISTERS[i].name) == 0){
             return 1;
@@ -454,6 +457,9 @@ int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, 
             }
         }
     }
+    print_list(*labels);
+    print_list(*entries);
+    print_list(*externals);
     return error_flag;
 }
 
@@ -471,15 +477,6 @@ int get_operand_type(char* operand){
     }
 }
 
-short int get_src(char* operand, Node** labels,  Node** entries, Node** externals){
-    if(!exists(*labels ,operand, 0) && !exists(*entries ,operand, 0) && !exists(*externals ,operand, 0)){
-        return -1;
-    } if (exists(*externals, operand, 0)){
-        return 1;
-    } else {
-        return 2;
-    }
-}
 
 short int operation_as_num(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals){
     int op = 0;
@@ -497,55 +494,200 @@ short int operation_as_num(CommandSentence* c_s, Node** labels,  Node** entries,
     return op;
 }
 
+int get_reg(char* reg){
+    int i;
+    char* reg_cpy;
+    if(*reg == '*'){
+        reg_cpy = reg + 1;
+    } else {
+        reg_cpy = reg;
+    }
+    for(i = 0; i < 8; i++){
+        if(strcmp(reg_cpy, REGISTERS[i].name) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
 
+short int two_regs(char* reg1, char* reg2){
+    int src, dest;
+    src = get_reg(reg1);
+    dest = get_reg(reg2);
+    return ((src << 6) | (dest << 3) | 4);
+}
+
+short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
+    int operand_as_int;
+    Node* operand_node;
+    if(*operand == '#' && is_num_legal(operand + 1)){
+        operand_as_int = atoi(operand + 1);
+        if(operand_as_int < 0){
+            operand_as_int &= 0b111111111111;
+        }
+        return (operand_as_int << 3) | 4;
+    } else if(exists(*externals, operand, 0)){
+        return 1;
+    } else if (exists(*labels, operand, 0)){
+        operand_node = get_node(*labels,operand);
+        return ((operand_node->data->line) << 3) | 2;
+    } else if(reg_arg(operand)){
+        if(path){
+            return (get_reg(operand) << 6) | 4;
+        } else {
+            return (get_reg(operand) << 3) | 4;
+        }
+    }
+    return 0;
+}
+
+void printBinary(short int num) {
+    int bits = 15; // Calculate the number of bits in a short int
+
+    for (int i = bits - 1; i >= 0; i--) {
+        putchar((num & (1 << i)) ? '1' : '0');
+    }
+    printf(" | %d \n", num);
+}
+
+void handle_operands(short int** machine_code, CommandSentence* c_s, Node** labels, Node** externals){
+    int last_index = c_s->word_count - 1;
+    if(c_s->word_count == 1) {
+        return;
+    }
+    if(reg_arg(c_s->src) && reg_arg(c_s->dest)){
+        (*machine_code)[last_index] = two_regs(c_s->src, c_s->dest);
+        return;
+    } else {
+        (*machine_code)[last_index] = operand_as_code(c_s->dest, labels, externals, DESTINATION);
+    }
+    if(c_s->src){
+        (*machine_code)[1] = operand_as_code(c_s->src, labels, externals, SOURCE);
+    }
+}
 
 short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals) {
-    int i;
     short int* machine_code = (short int*)calloc(c_s->word_count, sizeof(short int));
     if (!machine_code) {
         printf("FAILED TO ALLOCATE MEMORY.\n");
         exit(1);
     }
     machine_code[0] = operation_as_num(c_s, labels, entries, externals);
-    for(i = 1; i < c_s->word_count; i++){
-
-    }
-
-
+    handle_operands(&machine_code, c_s, labels, externals);
     return machine_code;
 }
 
-void printBinary(short int num) {
-    int bits = sizeof(short int) * 8; // Calculate the number of bits in a short int
+char* short_to_5_digit_octal(short int num) {
+    // Handle negative numbers by converting them to their 2's complement representation
+    unsigned short int abs_num = (num < 0) ? (unsigned short int)(num + 0x10000) : (unsigned short int)num;
 
-    for (int i = bits - 1; i >= 0; i--) {
-        putchar((num & (1 << i)) ? '1' : '0');
+    // Allocate memory for the output string (5 digits + null terminator)
+    char* result = (char*)malloc(6 * sizeof(char));
+    if (result == NULL) {
+        return NULL; // Allocation failed
     }
-    printf("\n");
+
+    // Convert the number to octal and store in the result buffer
+    int i = 4; // Start from the last digit
+    do {
+        result[i--] = (abs_num % 8) + '0';
+        abs_num /= 8;
+    } while (abs_num > 0 && i >= 0);
+
+    // Pad the result with '0' if necessary
+    while (i >= 0) {
+        result[i--] = '0';
+    }
+
+    // Null-terminate the string
+    result[5] = '\0';
+
+    return result;
 }
 
-int second_pass(const char* file_name, Node** labels,  Node** entries, Node** externals, SentenceList* code){
-    int IC = 0, i;
+short int* get_instruction_code(InstructionSentence* i_s){
+    int i;
+    short int* machine_code = (short int*)calloc(i_s->size, sizeof(short int));
+    if (!machine_code) {
+        printf("FAILED TO ALLOCATE MEMORY.\n");
+        exit(1);
+    }
+    for(i = 0; i < i_s->size; i++){
+        machine_code[i] = i_s->data[i];
+    }
+    return machine_code;
+}
+
+short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node** entries, Node** externals){
+    int i, L = 0;
     SenNode* current_line;
     short int* translation;
     short int* machine_code = (short int*)calloc(code->size, sizeof(short int));
     if(!machine_code){ printf("FAILED TO ALLOCATE MEMORY.\n"); exit(1); }
-
     current_line = code->head;
-    while(current_line != NULL && IC <= LAST_ADDRESS - FIRST_ADDRESS){
-        if(current_line->type == COMMAND){
-            translation = get_command_code(current_line->sentence.command);
-            if(translation != NULL){
-                for(i = 0; i < current_line->sentence.command->word_count; i++){
+    while (current_line != NULL && L <= LAST_ADDRESS - FIRST_ADDRESS) {
+        if (current_line->type == COMMAND) {
+            translation = get_command_code(current_line->sentence.command, labels, entries, externals);
+            if (translation != NULL) {
+                for (i = 0; i < current_line->sentence.command->word_count; i++) {
                     printBinary(translation[i]);
-                    machine_code[IC++] = translation[i];
+                    machine_code[L] = translation[i];
+                    (*IC)++;
+                    L++;
+                }
+                free(translation);
+            }
+        } else if (current_line->type == INSTRUCTION) {
+            translation = get_instruction_code(current_line->sentence.instruction);
+            if (translation != NULL) {
+                for (i = 0; i < current_line->sentence.instruction->size; i++) {
+                    printBinary(translation[i]);
+                    machine_code[L] = translation[i];
+                    (*DC)++;
+                    L++;
                 }
                 free(translation);
             }
         }
-        IC++;
+        current_line = (SenNode *) current_line->next;
     }
+    return machine_code;
+}
 
+void get_obj(const char* file_name, char** input_file){
+    size_t name_len = strlen(file_name);
+    *input_file = (char*)malloc(name_len + 4);
+    if(*input_file == NULL){
+        printf("[ERROR] Failed to allocate memory,\n");
+        return;
+    }
+    strcpy(*input_file, file_name);
+    strcat(*input_file, ".ob");
+}
+
+void write_obj_file(const char* file_name, short int* code, int IC, int DC){
+    char* obj_file, *octal;
+    int i;
+    get_obj(file_name, &obj_file);
+    FILE* f = fopen(obj_file, "w");
+    if(f == NULL){
+        printf("FAILED TO OPEN FILE.\n");
+        return;
+    }
+    fprintf(f, "  %d %d  \n", IC, DC);
+    for(i = 0; i < DC + IC; i++){
+        octal = short_to_5_digit_octal(code[i]);
+        fprintf(f, "%d\t%s\n", FIRST_ADDRESS + i, octal);
+    }
+    free(obj_file);
+    fclose(f);
+}
+
+
+int second_pass(const char* file_name, Node** labels,  Node** entries, Node** externals, SentenceList* code){
+    int IC = 0, i, L = 0, DC = 0;
+    short int* machine_code = calc_code(code, &IC, &DC, labels, entries, externals);
+    write_obj_file(file_name, machine_code, IC, DC);
     free(machine_code);
     return 0;
 }

@@ -7,3 +7,6 @@
 5) Read and understand second pass
 
 6) For now, pre-assembler creates and deletes if there's a failure, change it.
+
+7) Create a struct called error which holds the text of the error and the line of the error, so
+every time there's an error, it will print the error and the line occured.

@@ -67,6 +67,18 @@ int exists(Node *head, char* label, int invalid) {
     return 0;  /* Not found */
 }
 
+Node* get_node(Node* head, char* label){
+    Node *temp;
+    temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->data->text, label) == 0) {
+            return temp;  /* Found */
+        }
+        temp = temp->next;
+    }
+    return NULL;  /* Not found */
+}
+
 void print_list(Node *head) {
     Node *temp;
 

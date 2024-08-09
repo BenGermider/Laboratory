@@ -50,8 +50,8 @@ typedef enum {
 } SentenceType;
 
 typedef enum {
-    DESTINATION = 1,
-    SOURCE = 2
+    DESTINATION,
+    SOURCE
 } OPERAND;
 
 #endif

@@ -108,6 +108,9 @@ void free_space(int amount, ...) {
 }
 
 int is_num_legal(char *num){
+    if(num == NULL){
+        return 0;
+    }
     if(!isdigit(*num) || *num != '+' || *num != '-'){
         return 1;
     }

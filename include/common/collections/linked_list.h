@@ -15,6 +15,8 @@ void append(Node **head, int number, const char *text);
 
 int exists(Node*, char*, int);
 
+Node* get_node(Node* head, char* label);
+
 void print_list(Node *head);
 
 void free_list(Node *head);
