@@ -457,9 +457,7 @@ int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, 
             }
         }
     }
-    print_list(*labels);
-    print_list(*entries);
-    print_list(*externals);
+
     return error_flag;
 }
 
@@ -618,7 +616,7 @@ short int* get_instruction_code(InstructionSentence* i_s){
     return machine_code;
 }
 
-short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node** entries, Node** externals){
+short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node** entries, Node** externals, Node** ext_file){
     int i, L = 0;
     SenNode* current_line;
     short int* translation;
@@ -630,7 +628,13 @@ short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node**
             translation = get_command_code(current_line->sentence.command, labels, entries, externals);
             if (translation != NULL) {
                 for (i = 0; i < current_line->sentence.command->word_count; i++) {
-                    printBinary(translation[i]);
+                    if(translation[i] == 1){
+                        if(exists(*externals, current_line->sentence.command->src, 0)){
+                            append(ext_file, L, current_line->sentence.command->src);
+                        } else if (exists(*externals, current_line->sentence.command->dest, 0)){
+                            append(ext_file, L, current_line->sentence.command->dest);
+                        }
+                    }
                     machine_code[L] = translation[i];
                     (*IC)++;
                     L++;
@@ -641,7 +645,6 @@ short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node**
             translation = get_instruction_code(current_line->sentence.instruction);
             if (translation != NULL) {
                 for (i = 0; i < current_line->sentence.instruction->size; i++) {
-                    printBinary(translation[i]);
                     machine_code[L] = translation[i];
                     (*DC)++;
                     L++;
@@ -654,21 +657,11 @@ short int* calc_code(SentenceList* code, int* IC, int* DC, Node** labels, Node**
     return machine_code;
 }
 
-void get_obj(const char* file_name, char** input_file){
-    size_t name_len = strlen(file_name);
-    *input_file = (char*)malloc(name_len + 4);
-    if(*input_file == NULL){
-        printf("[ERROR] Failed to allocate memory,\n");
-        return;
-    }
-    strcpy(*input_file, file_name);
-    strcat(*input_file, ".ob");
-}
 
 void write_obj_file(const char* file_name, short int* code, int IC, int DC){
     char* obj_file, *octal;
     int i;
-    get_obj(file_name, &obj_file);
+    get_file(file_name, &obj_file, ".ob");
     FILE* f = fopen(obj_file, "w");
     if(f == NULL){
         printf("FAILED TO OPEN FILE.\n");
@@ -683,11 +676,57 @@ void write_obj_file(const char* file_name, short int* code, int IC, int DC){
     fclose(f);
 }
 
+void write_entry_file(const char* file_name, Node** labels, Node** entries){
+    char* entry_file;
+    Node* label_node, *entry;
+    get_file(file_name, &entry_file, ".ent");
+    entry = *entries;
+    if(entry == NULL){
+        return;
+    }
+    FILE* f = fopen(entry_file, "w");
+    if(!f){
+        printf("FAILED TO OPEN FILE\n");
+        return;
+    }
+    while(entry != NULL){
+        label_node = get_node(*labels, entry->data->text);
+        entry->data->line = label_node->data->line;
+        fprintf(f, "%s %d\n", entry->data->text, entry->data->line);
+        entry = entry->next;
+    }
+    free(entry_file);
+    fclose(f);
+}
+
+//void write_extern_file(const char* file_name, Node** ext_file){
+//    char* ext_name;
+//    Node* ext_label;
+//    get_file(file_name, &ext_name, ".ext");
+////    ext_label = *ext_file;
+////    if(ext_label == NULL){
+////        return;
+////    }
+////    FILE* f = fopen(ext_name, "w");
+////    if(!f){
+////        printf("FAILED TO OPEN FILE\n");
+////        return;
+////    }
+//////    print_list(ext_label);
+////    while(ext_label != NULL){
+////        fprintf(f, "%s %d\n", ext_label->data->text, ext_label->data->line);
+////        ext_label = ext_label->next;
+////    }
+//    free(ext_name);
+////    fclose(f);
+//}
 
 int second_pass(const char* file_name, Node** labels,  Node** entries, Node** externals, SentenceList* code){
     int IC = 0, i, L = 0, DC = 0;
-    short int* machine_code = calc_code(code, &IC, &DC, labels, entries, externals);
+    Node* ext_file = NULL;
+    short int* machine_code = calc_code(code, &IC, &DC, labels, entries, externals, &ext_file);
     write_obj_file(file_name, machine_code, IC, DC);
+    write_entry_file(file_name, labels, entries);
     free(machine_code);
     return 0;
 }
@@ -703,7 +742,7 @@ char* get_line_copy(const char* origin_line){
     return copy;
 }
 
-void get_file(const char* file_name, char** input_file){
+void get_file(const char* file_name, char** input_file, const char* suffix){
     size_t name_len = strlen(file_name);
     *input_file = (char*)malloc(name_len + 4);
     if(*input_file == NULL){
@@ -711,7 +750,7 @@ void get_file(const char* file_name, char** input_file){
         return;
     }
     strcpy(*input_file, file_name);
-    strcat(*input_file, ".am");
+    strcat(*input_file, suffix);
 }
 
 int assembler(const char* file_name){
@@ -719,10 +758,11 @@ int assembler(const char* file_name){
     FILE *obj, *ext, *ent, *assembly;
     Node* externals = NULL;
     Node* entries = NULL;
+
     Node* labels = NULL;
     SentenceList* code = NULL;
 
-    get_file(file_name, &src_file_name);
+    get_file(file_name, &src_file_name, ".am");
 
     assembly = fopen(src_file_name, "r");
     if (assembly == NULL) {
@@ -741,7 +781,6 @@ int assembler(const char* file_name){
 
     first_pass(assembly, &labels, &externals, &entries, code);
     second_pass(file_name, &labels, &entries, &externals , code);
-
 
     freeSentenceList(code);
     free(code);

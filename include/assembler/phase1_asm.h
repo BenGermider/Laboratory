@@ -34,7 +34,7 @@ int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, 
 
 char* get_line_copy(const char* origin_line);
 
-void get_file(const char* file_name, char** input_file);
+void get_file(const char* file_name, char** input_file, const char*);
 
 int assembler(const char* file_name);
 
