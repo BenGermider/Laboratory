@@ -3,8 +3,8 @@
 #ifndef LABORATORY_LIBRARY_H
 #define LABORATORY_LIBRARY_H
 
-extern Operation OPERATIONS[];
-extern Instruction INSTRUCTIONS[];
-extern Reg REGISTERS[];
+extern const Operation OPERATIONS[];
+extern const Instruction INSTRUCTIONS[];
+extern const Reg REGISTERS[];
 
 #endif

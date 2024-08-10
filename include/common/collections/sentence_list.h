@@ -17,10 +17,11 @@ typedef struct {
 SenNode* createNode(void* data, SentenceType type);
 
 void add_code(SentenceList* list, void* data, SentenceType type);
-//void add_code(SenNode **head, void* data, SentenceType type);
+
+void merge_lists(SentenceList* list1, SentenceList* list2);
 
 void printSentenceList(SenNode* head);
 
 void freeSentenceList(SentenceList*);
 
-#endif //LABORATORY_SENTENCE_LIST_H
+#endif /* LABORATORY_SENTENCE_LIST_H */

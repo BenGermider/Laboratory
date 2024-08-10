@@ -50,8 +50,17 @@ typedef enum {
 } SentenceType;
 
 typedef enum {
-    DESTINATION,
-    SOURCE
+    DESTINATION = 3,
+    SRC_OP = 6,
+    SOURCE = 7,
+    OPCODE = 11
 } OPERAND;
+
+typedef enum {
+    EXTERNAL = 1,
+    RELOCATABLE = 2,
+    ABSOLUTE = 4
+} ARE;
+
 
 #endif

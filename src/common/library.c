@@ -1,7 +1,7 @@
 #include "../../include/common/library.h"
 #include "../../include/common/data_types.h"
 
-Operation OPERATIONS[] = {
+const Operation OPERATIONS[] = {
         {"mov",0, 2},
         {"cmp",1, 2},
         {"add",2,2},
@@ -20,14 +20,14 @@ Operation OPERATIONS[] = {
         {"stop",15,0},
 };
 
-Instruction INSTRUCTIONS[] = {
+const Instruction INSTRUCTIONS[] = {
         {".data"},
         {".string"},
         {".entry"},
         {".extern"}
 };
 
-Reg REGISTERS[] = {
+const Reg REGISTERS[] = {
         {"r0"},
         {"r1"},
         {"r2"},

@@ -46,6 +46,7 @@ int is_valid(HashTable *ht, char* macro_line, char* macro_name){
 
 char* analyze(char* line, int* in_macro, HashTable* ht, char* macro_name, char* macro_content) {
     char* macro;
+    size_t line_len;
     char *macro_line = (char*)malloc(strlen(line) + 1);
     char *macro_check = (char*)malloc(strlen(line) + 1);
     if(macro_line == NULL || macro_check == NULL){
@@ -54,7 +55,6 @@ char* analyze(char* line, int* in_macro, HashTable* ht, char* macro_name, char* 
     }
     strcpy(macro_line, line);
     clear_side_blanks(&macro_line);
-    size_t line_len;
     strcpy(macro_check, macro_line);
     if (strcmp(strtok(macro_check, " "), MACRO_START) == 0) {
         macro_check += 5; /* Got macro declaration, now check name */
@@ -131,14 +131,14 @@ void file_names(const char* name, char** input, char** output) {
 int pre_assembler(char* name_of_file) {
     int result;
     char *input_file_name = NULL, *output_file_name = NULL;
-
+    FILE *file_to_scan, *file_to_write;
     file_names(name_of_file, &input_file_name, &output_file_name);
 
     if (input_file_name == NULL || output_file_name == NULL) {
         return 1;
     }
 
-    FILE *file_to_scan = fopen(input_file_name, "r+");
+    file_to_scan = fopen(input_file_name, "r+");
     if (file_to_scan == NULL) {
         printf("[ERROR] Failed to open file %s\n", input_file_name);
         free(input_file_name);
@@ -146,7 +146,7 @@ int pre_assembler(char* name_of_file) {
         return 1;
     }
 
-    FILE *file_to_write = fopen(output_file_name, "w");
+    file_to_write = fopen(output_file_name, "w");
     if (file_to_write == NULL) {
         printf("[ERROR] Failed to open file %s\n", output_file_name);
         fclose(file_to_scan);
@@ -163,7 +163,6 @@ int pre_assembler(char* name_of_file) {
     fclose(file_to_scan);
     fclose(file_to_write);
 
-    // Free allocated memory
     free(input_file_name);
     free(output_file_name);
 

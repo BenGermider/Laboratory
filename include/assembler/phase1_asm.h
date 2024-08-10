@@ -1,4 +1,3 @@
-
 #ifndef LABORATORY_PHASE1_ASM_H
 #define LABORATORY_PHASE1_ASM_H
 #include <stdio.h>
@@ -12,30 +11,41 @@
 #include "../common/collections/linked_list.h"
 #include "../common/collections/sentence_list.h"
 
-int is_reg(char *str);
-
-int is_operation(char *str);
-
-int is_valid_instruction(char* str);
-
-int is_valid_label(char **label, int);
+int is_valid_label(char **label, int is_decl);
 
 int store_or_src(char *instruction);
 
-void instruction(char* line, char* line_copy);
-
 void declare_sentence(InstructionSentence *sen);
 
-int* pull_numbers(char* data, size_t* size);
+int insert_label_table(Node **database, char *label, int lines);
 
 InstructionSentence* store_data(char* line);
 
-int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, SentenceList* code);
+InstructionSentence* src_handling(char* line, int src_index);
+
+void insert_source_label(Node** list, char* label, int line);
+
+void generate_command(CommandSentence *c_s);
+
+void get_command(CommandSentence* c_s, char* command);
+
+void args(CommandSentence* c_s, char* command);
+
+void word_count(CommandSentence* c_s);
+
+void analyze_command(CommandSentence* c_s, char* command);
+
+CommandSentence *pull_command(char *command, int line);
+
+int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, SentenceList* code, SentenceList* data);
+
+
+void declare_lists(SentenceList* code, SentenceList* data);
 
 char* get_line_copy(const char* origin_line);
 
-void get_file(const char* file_name, char** input_file, const char*);
+void get_file(const char* file_name, char** input_file, const char* suffix);
 
 int assembler(const char* file_name);
 
-#endif //LABORATORY_PHASE1_ASM_H
+#endif /* LABORATORY_PHASE1_ASM_H */

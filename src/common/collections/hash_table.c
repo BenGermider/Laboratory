@@ -30,15 +30,17 @@ HashTable* createHashTable() {
 
 void resizeHashTable(HashTable* ht, size_t new_size) {
     KeyVal** new_table = (KeyVal**)calloc(new_size, sizeof(KeyVal*));
+    size_t i;
+    unsigned int new_index;
     if (new_table == NULL) {
         return;
     }
 
-    for (size_t i = 0; i < ht->size; i++) {
+    for (i = 0; i < ht->size; i++) {
         KeyVal* current = ht->table[i];
         while (current != NULL) {
             KeyVal* next = current->next;
-            unsigned int new_index = hash(current->key, new_size);
+            new_index = hash(current->key, new_size);
             current->next = new_table[new_index];
             new_table[new_index] = current;
             current = next;
@@ -51,29 +53,55 @@ void resizeHashTable(HashTable* ht, size_t new_size) {
 }
 
 void insert(HashTable* ht, char* key, char* value) {
+    unsigned int index;
+    KeyVal* newPair;
+    KeyVal* current;
+
     /* TODO: CHECK IF NECESSARY */
     if (ht->count >= ht->size * 0.75) {
         resizeHashTable(ht, ht->size * 2);
     }
 
-    unsigned int index = hash(key, ht->size);
-    KeyVal* newPair = (KeyVal*)malloc(sizeof(KeyVal));
+    index = hash(key, ht->size);
+    newPair = (KeyVal*)malloc(sizeof(KeyVal));
     if (newPair == NULL) {
         return;
     }
-    newPair->key = strdup(key);
-    newPair->value = strdup(value);
+
+    newPair->key = (char*)malloc(strlen(key) + 1);
+    if (newPair->key == NULL) {
+        free(newPair);
+        return;
+    }
+    strcpy(newPair->key, key);
+
+    newPair->value = (char*)malloc(strlen(value) + 1);
+    if (newPair->value == NULL) {
+        free(newPair->key);
+        free(newPair);
+        return;
+    }
+    strcpy(newPair->value, value);
+
     newPair->next = NULL;
 
     if (ht->table[index] == NULL) {
         ht->table[index] = newPair;
         ht->count++;
     } else {
-        KeyVal* current = ht->table[index];
+        current = ht->table[index];
         while (current != NULL) {
             if (strcmp(current->key, key) == 0) {
                 free(current->value);
-                current->value = strdup(value);
+                current->value = (char*)malloc(strlen(value) + 1);
+                if (current->value == NULL) {
+                    /* Handle allocation failure */
+                    free(newPair->key);
+                    free(newPair->value);
+                    free(newPair);
+                    return;
+                }
+                strcpy(current->value, value);
                 free(newPair->key);
                 free(newPair->value);
                 free(newPair);
@@ -84,7 +112,7 @@ void insert(HashTable* ht, char* key, char* value) {
             }
             current = current->next;
         }
-        current->next = newPair;
+        current->next =  newPair;
         ht->count++;
     }
 }
@@ -102,7 +130,8 @@ char* get(HashTable* ht,  char* key) {
 }
 
 void freeHashTable(HashTable* ht) {
-    for (size_t i = 0; i < ht->size; i++) {
+    size_t i;
+    for (i = 0; i < ht->size; i++) {
         KeyVal* current = ht->table[i];
         while (current != NULL) {
             KeyVal* temp = current;
@@ -117,6 +146,7 @@ void freeHashTable(HashTable* ht) {
 }
 
 void printHashTable(HashTable* ht) {
+    size_t i;
     if (ht == NULL) {
         printf("Hash table is NULL\n");
         return;
@@ -124,10 +154,10 @@ void printHashTable(HashTable* ht) {
 
     printf("Hash Table Contents:\n");
     printf("--------------------\n");
-    for (size_t i = 0; i < ht->size; i++) {
+    for (i = 0; i < ht->size; i++) {
         KeyVal* current = ht->table[i];
         if (current != NULL) {
-            printf("Bucket %zu:\n", i);
+            printf("Bucket %d:\n", (int)i);
             while (current != NULL) {
                 printf("  Key: %s, Value: %s\n", current->key, current->value);
                 current = current->next;
@@ -135,7 +165,7 @@ void printHashTable(HashTable* ht) {
         }
     }
     printf("--------------------\n");
-    printf("Total items: %zu\n", ht->count);
-    printf("Table size: %zu\n", ht->size);
+    printf("Total items: %d\n", (int) ht->count);
+    printf("Table size: %d\n", (int) ht->size);
     printf("Load factor: %.2f\n", (float)ht->count / ht->size);
 }

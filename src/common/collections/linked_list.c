@@ -55,6 +55,9 @@ int exists(Node *head, char* label, int invalid) {
     Node *temp;
 
     temp = head;
+    if(label == NULL){
+        return 0;
+    }
     while (temp != NULL) {
         if (strcmp(temp->data->text, label) == 0) {
             if(invalid) {

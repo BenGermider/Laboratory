@@ -40,6 +40,22 @@ void add_code(SentenceList* list, void* data, SentenceType type) {
     }
 }
 
+void merge_lists(SentenceList* list1, SentenceList* list2) {
+    SenNode* current;
+    if (list1 == NULL) {
+        list1 = list2;
+        return;
+    }
+
+    current = (SenNode*) list1->head;
+    while (current->next != NULL) {
+        current =(SenNode*) current->next;
+    }
+    current->next = (struct SenNode*) list2->head;
+    list1->size += list2->size;
+}
+
+
 void freeSentenceList(SentenceList* list) {
     SenNode* current = list->head;
     SenNode* nextNode;
@@ -51,12 +67,13 @@ void freeSentenceList(SentenceList* list) {
     }
 
     list->head = NULL;
-    list->size = 0;  // Reset the size of the list
+    list->size = 0;
 }
 
 void printSentenceList(SenNode* head) {
     SenNode* current = head;
     int i = 0;
+    size_t j;
 
     while (current != NULL) {
         printf("Node %d:\n", i);
@@ -66,7 +83,7 @@ void printSentenceList(SenNode* head) {
             printf("  Type: INSTRUCTION\n");
             printf("  Label: %s\n", is->label);
             printf("  Data: ");
-            for (size_t j = 0; j < is->size; j++) {
+            for (j = 0; j < is->size; j++) {
                 printf("%d ", is->data[j]);
             }
             printf("\n  Source: %d\n", is->src);

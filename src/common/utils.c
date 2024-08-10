@@ -7,32 +7,25 @@
 
 
 void clear_side_blanks_remove_newline(char** line) {
-    char* start;
-    char* end;
+    char* start, *end, *line_copy;
     size_t new_length;
-
     if (*line == NULL) {
         return;
     }
-
     start = *line;
     while (isspace((unsigned char)*start)) {
         start++;
     }
-
     end = *line + strlen(*line) - 1;
     while (end > start && isspace((unsigned char)*end)) {
         end--;
     }
-
     new_length = end - start + 1;
-
-    char* line_copy = (char*)malloc(new_length + 1);
+    line_copy = (char*)malloc(new_length + 1);
     if (line_copy == NULL) {
         printf("[ERROR] Memory allocation failed.\n");
         return;
     }
-
     strncpy(line_copy, start, new_length);
     line_copy[new_length] = '\0';
 
@@ -40,16 +33,18 @@ void clear_side_blanks_remove_newline(char** line) {
 }
 
 void clear_side_blanks(char** line){
+    char* start, *end, *line_copy;
+    size_t new_length;
     if (*line == NULL) {
         return;
     }
 
-    char *start = *line;
+    start = *line;
     while (isspace((unsigned char)*start) && *start != '\n') {
         start++;
     }
 
-    char *end = *line + strlen(*line) - 1;
+    end = *line + strlen(*line) - 1;
     while (end > start && isspace((unsigned char)*end) && *end != '\n') {
         end--;
     }
@@ -58,9 +53,9 @@ void clear_side_blanks(char** line){
         end++;
     }
 
-    size_t new_length = end - start + 1;
+    new_length = end - start + 1;
 
-    char *line_copy = (char*)malloc(new_length + 1);
+    line_copy = (char*)malloc(new_length + 1);
     if (line_copy == NULL) {
         printf("[ERROR] Memory allocation failed.\n");
         return;
@@ -107,38 +102,6 @@ void free_space(int amount, ...) {
     va_end(args);
 }
 
-int is_num_legal(char *num){
-    if(num == NULL){
-        return 0;
-    }
-    if(!isdigit(*num) || *num != '+' || *num != '-'){
-        return 1;
-    }
-    num++;
-    while(*num != '\0'){
-        if(!isdigit(*num)){
-            return 1;
-        }
-        num++;
-    }
-    return 0;
-}
-
-int is_legal_string(char* str){
-    char *end;
-    if (*str != '"') {
-        return 1;
-    }
-    str++;
-    end = strchr(str, '"');
-    if (end == NULL) {
-        return 1;
-    }
-    if (*(end + 1) != '\0') {
-        return 1;
-    }
-    return 0;
-}
 
 int is_ignorable(char *line){
     char *copy = malloc(strlen(line) + 1);
@@ -157,3 +120,27 @@ int is_ignorable(char *line){
     return 0;
 }
 
+char* get_line_copy(const char* origin_line){
+    char* copy = malloc(strlen(origin_line) + 1);
+    if(!copy){
+        printf("[ERROR] Failed to allocate memory");
+        return NULL;
+    }
+    strcpy(copy, origin_line);
+    copy[strlen(origin_line)] = '\0';
+    return copy;
+}
+
+void get_file(const char* file_name, char** input_file, const char* suffix){
+    size_t name_len;
+    size_t suffix_len;
+    name_len = strlen(file_name);
+    suffix_len = strlen(suffix);
+    *input_file = (char*)malloc(name_len + suffix_len);
+    if(*input_file == NULL){
+        printf("[ERROR] Failed to allocate memory,\n");
+        return;
+    }
+    strcpy(*input_file, file_name);
+    strcat(*input_file, suffix);
+}

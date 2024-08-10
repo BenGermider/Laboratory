@@ -9,10 +9,10 @@ char* get_word(char*);
 
 void free_space(int amount, ...);
 
-int is_num_legal(char*);
-
-int is_legal_string(char*);
-
 int is_ignorable(char*);
+
+void get_file(const char* file_name, char** input_file, const char* suffix);
+
+char* get_line_copy(const char* origin_line);
 
 #endif
