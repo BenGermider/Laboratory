@@ -95,6 +95,7 @@ int gen(FILE *input_file, FILE *output_file) {
 
     while (!feof(input_file)) {
         if (fgets(line, MAX_LINE_LEN, input_file) == NULL) {
+            /* TODO: ADD LINE TOO LONG ERROR */
             break;
         }
         to_output = analyze(line, &in_macro, ht, macro_name, macro_content);

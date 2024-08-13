@@ -8,9 +8,9 @@
 #include "../../include/common/consts.h"
 #include "../../include/common/utils.h"
 
-char* short_to_5_digit_octal(short int num);
+char* short_to_5_digit_octal(unsigned short int num);
 
-void write_obj_file(const char* file_name, short int* code, int IC, int DC);
+void write_obj_file(const char* file_name, unsigned short int* code, int IC, int DC);
 
 void write_entry_file(const char* file_name, Node** labels, Node** entries);
 

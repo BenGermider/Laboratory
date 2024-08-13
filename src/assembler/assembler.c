@@ -50,7 +50,16 @@ int assembler(const char* file_name){
 
 int main(int argc, char* argv[]) {
 
-    char* name = "mock/assembler/assembler_mock";
-    assembler(name);
+    while (--argc > 0) {
+        printf("Start pre-proc\n");
+        if (!pre_assembler(argv[argc])) {
+            continue;
+        }
+        printf("Start first pass\n");
+        /*Execute the first pass, and then the second on the ".am" file.*/
+        if (assembler(argv[argc])) {
+            continue;
+        }
+    }
     return 0;
 }

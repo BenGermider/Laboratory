@@ -10,19 +10,19 @@
 
 int get_operand_type(char* operand);
 
-short int operation_as_num(CommandSentence*);
+unsigned short int operation_as_num(CommandSentence*);
 
-short int two_regs(char*, char*);
+unsigned short int two_regs(char*, char*);
 
-short int operand_as_code(char*, Node**, Node**, OPERAND);
+unsigned short int operand_as_code(char*, Node**, Node**, OPERAND);
 
-void handle_operands(short int**, CommandSentence*, Node**, Node**);
+void handle_operands(unsigned short int**, CommandSentence*, Node**, Node**);
 
-short int* get_command_code(CommandSentence*, Node**,  Node**, Node**);
+unsigned short int* get_command_code(CommandSentence*, Node**,  Node**, Node**);
 
-short int* get_instruction_code(InstructionSentence*);
+unsigned short int* get_instruction_code(InstructionSentence*);
 
-short int* calc_code(
+unsigned short int* calc_code(
         SentenceList*,
         SentenceList*,
         int*,

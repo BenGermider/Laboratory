@@ -6,31 +6,32 @@
 #include "../../include/common/utils.h"
 #include "../../include/assembler/output_manager.h"
 
-char* short_to_5_digit_octal(short int num) {
+char* short_to_5_digit_octal(unsigned short int num) {
+    char* result;
+    int i;
+    unsigned short int abs_num;
 
-    unsigned short int abs_num = (num < 0) ? (unsigned short int)(num + 0x10000) : (unsigned short int)num;
-    int i = 4;
-
-    char* result = (char*)malloc(6 * sizeof(char));
+    result = (char*)malloc(6 * sizeof(char));
     if (result == NULL) {
         return NULL;
     }
 
-    do {
-        result[i--] = (abs_num % 8) + '0';
-        abs_num /= 8;
-    } while (abs_num > 0 && i >= 0);
+    if (num < 0) {
+        abs_num = (unsigned short int)(num + 65536);
+    } else {
+        abs_num = (unsigned short int)num;
+    }
 
-    while (i >= 0) {
-        result[i--] = '0';
+    for (i = 4; i >= 0; i--) {
+        result[i] = (abs_num % 8) + '0';
+        abs_num = abs_num / 8;
     }
 
     result[5] = '\0';
 
     return result;
 }
-
-void write_obj_file(const char* file_name, short int* code, int IC, int DC){
+void write_obj_file(const char* file_name, unsigned short int* code, int IC, int DC){
     char* obj_file, *octal;
     int i;
     FILE* f;
@@ -44,6 +45,7 @@ void write_obj_file(const char* file_name, short int* code, int IC, int DC){
     for(i = 0; i < DC + IC; i++){
         octal = short_to_5_digit_octal(code[i]);
         fprintf(f, "%d\t%s\n", FIRST_ADDRESS + i, octal);
+        free(octal);
     }
     free(obj_file);
     fclose(f);

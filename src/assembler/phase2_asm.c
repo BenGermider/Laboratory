@@ -21,7 +21,7 @@ int get_operand_type(char* operand){
     }
 }
 
-short int operation_as_num(CommandSentence* c_s){
+unsigned short int operation_as_num(CommandSentence* c_s){
     int op = 0;
     int padding;
     op |= c_s->operation << OPCODE;
@@ -37,14 +37,14 @@ short int operation_as_num(CommandSentence* c_s){
     return op;
 }
 
-short int two_regs(char* reg1, char* reg2){
+unsigned short int two_regs(char* reg1, char* reg2){
     int src, dest;
     src = get_reg(reg1);
     dest = get_reg(reg2);
     return ((src << SRC_OP) | (dest << DESTINATION) | ABSOLUTE);
 }
 
-short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
+unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
     Node* operand_node;
     if(*operand == '#' && is_num_legal(operand + 1)){
         return integer_word(operand);
@@ -63,7 +63,7 @@ short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAN
     return 0;
 }
 
-void handle_operands(short int** machine_code, CommandSentence* c_s, Node** labels, Node** externals){
+void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, Node** labels, Node** externals){
     int last_index;
     if(c_s->word_count == 1) {
         return;
@@ -80,8 +80,8 @@ void handle_operands(short int** machine_code, CommandSentence* c_s, Node** labe
     }
 }
 
-short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals) {
-    short int* machine_code = (short int*)calloc(c_s->word_count, sizeof(short int));
+unsigned short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals) {
+    unsigned short int* machine_code = (unsigned short int*)calloc(c_s->word_count, sizeof(unsigned short int));
     if (!machine_code) {
         printf("FAILED TO ALLOCATE MEMORY.\n");
         return NULL;
@@ -91,9 +91,9 @@ short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries
     return machine_code;
 }
 
-short int* get_instruction_code(InstructionSentence* i_s){
+unsigned short int* get_instruction_code(InstructionSentence* i_s){
     int i;
-    short int* machine_code = (short int*)calloc(i_s->size, sizeof(short int));
+    unsigned short int* machine_code = (unsigned short int*)calloc(i_s->size, sizeof(unsigned short int));
     if (!machine_code) {
         printf("FAILED TO ALLOCATE MEMORY.\n");
         return NULL;
@@ -104,13 +104,13 @@ short int* get_instruction_code(InstructionSentence* i_s){
     return machine_code;
 }
 
-short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** ext_file){
+unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** ext_file){
     int i, L = 0;
     SenNode* current_line;
-    short int* translation = NULL;
-    short int* machine_code;
+    unsigned short int* translation = NULL;
+    unsigned short int* machine_code;
     merge_lists(code, data);
-    machine_code = (short int*)calloc(code->size, sizeof(short int));
+    machine_code = (unsigned short int*)calloc(code->size, sizeof(unsigned short int));
     if(!machine_code){ printf("FAILED TO ALLOCATE MEMORY.\n"); exit(1); }
     current_line = code->head;
     while (current_line != NULL && *IC + data->size <= LAST_ADDRESS - FIRST_ADDRESS) {
@@ -159,7 +159,7 @@ int second_pass(
         SentenceList* data
         ){
     int IC = 0;
-    short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file);
+    unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file);
     if(machine_code == NULL){
         printf("GAY");
         return 1;
