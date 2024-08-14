@@ -7,12 +7,14 @@
 
 #define MACRO_START "macr"
 
-#define MACRO_END "end_macr"
+#define MACRO_END "endmacr"
 
 #define MAX_MACRO_NAME_LEN 31
 
 #define LAST_ADDRESS 4095
 
 #define FIRST_ADDRESS 100
+
+#define BUFFER 1024
 
 #endif

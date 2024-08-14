@@ -120,9 +120,9 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
                 for (i = 0; i < current_line->sentence.command->word_count; i++) {
                     if(translation[i] == 1){
                         if(exists(*externals, current_line->sentence.command->src, 0)){
-                            append(ext_file, L, current_line->sentence.command->src);
+                            append(ext_file, L + FIRST_ADDRESS, current_line->sentence.command->src);
                         } else if (exists(*externals, current_line->sentence.command->dest, 0)){
-                            append(ext_file, L, current_line->sentence.command->dest);
+                            append(ext_file, L + FIRST_ADDRESS, current_line->sentence.command->dest);
                         }
                     }
                     machine_code[L] = translation[i];
@@ -137,6 +137,7 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
                 for (i = 0; i < current_line->sentence.instruction->size; i++) {
                     machine_code[L] = translation[i];
                     L++;
+
                 }
                 free(translation);
             }
@@ -160,6 +161,7 @@ int second_pass(
         ){
     int IC = 0;
     unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file);
+
     if(machine_code == NULL){
         printf("GAY");
         return 1;

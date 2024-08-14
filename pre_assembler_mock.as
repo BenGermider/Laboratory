@@ -6,8 +6,10 @@ LOOP: 	prn #48
 		end_macr
 		lea	STR, r6
 		inc r6
+		.entry HELLO
 		mov *r6, K
 		sub r1, r4
+		dec HELLO
 		m_macr
 		dec	K
 		jmp LOOP

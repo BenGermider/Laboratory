@@ -38,6 +38,7 @@ $(OPERANDS)%.o: $(OPERANDS)%.c $(OPERANDS_H)%.h
 
 clear:
 	find . -name "*.o" -type f -delete
+	find . -name "*.am" -type f -delete
 	find . -name "*.ob" -type f -delete
 	find . -name "*.ent" -type f -delete
 	find . -name "*.ext" -type f -delete

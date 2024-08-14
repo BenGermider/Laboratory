@@ -2,22 +2,29 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
 #include "../../../include/common/data_types.h"
-int is_num_legal(char *num){
+
+int is_num_legal(char *num, INT_BOUND bounds){
+    char* num_copy;
     if(num == NULL){
-        return 0;
+        return 1;
     }
+    num_copy = num;
     if(!isdigit(*num) || *num != '+' || *num != '-'){
         return 1;
     }
-    num++;
-    while(*num != '\0'){
-        if(!isdigit(*num)){
+    num_copy++;
+    while(*(num_copy) != '\0'){
+        if(!isdigit(*(num_copy))){
             return 1;
         }
-        num++;
+        (num_copy)++;
+    }
+    if(atoi(num) < pow(-2, (bounds - 1)) || atoi(num) > (pow(2, bounds - 1) - 1)){
+        return 1;
     }
     return 0;
 }

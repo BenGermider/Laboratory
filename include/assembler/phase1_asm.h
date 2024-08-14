@@ -10,6 +10,7 @@
 #include "../../include/common/library.h"
 #include "../common/collections/linked_list.h"
 #include "../common/collections/sentence_list.h"
+#include "../common/collections/hash_table.h"
 
 int is_valid_label(char **label, int is_decl);
 
@@ -37,15 +38,12 @@ void analyze_command(CommandSentence* c_s, char* command);
 
 CommandSentence *pull_command(char *command, int line);
 
-int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, SentenceList* code, SentenceList* data);
-
+int first_pass(FILE*, Node**, Node**, Node**, SentenceList*, SentenceList*, HashTable*);
 
 void declare_lists(SentenceList* code, SentenceList* data);
 
 char* get_line_copy(const char* origin_line);
 
 void get_file(const char* file_name, char** input_file, const char* suffix);
-
-int assembler(const char* file_name);
 
 #endif /* LABORATORY_PHASE1_ASM_H */

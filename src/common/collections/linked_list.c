@@ -9,20 +9,18 @@ Node* create_node(int number, const char *text) {
 
     new_node = (Node *)malloc(sizeof(Node));
     if (new_node == NULL) {
-        perror("Failed to allocate memory\n");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
-    new_node->data = (LabelData*)malloc(sizeof(LabelData));
+    new_node->data = (SignData *)malloc(sizeof(SignData));
     if(new_node->data == NULL){
-        printf("[ERROR] Failed to allocate memory\n");
         free(new_node);
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     new_node->data->line = number;
     new_node->data->text = (char *)malloc(strlen(text) + 1);
     if (new_node->data->text == NULL) {
-        perror("Failed to allocate memory\n");
-        exit(EXIT_FAILURE);
+        free(new_node->data);
+        return NULL;
     }
     strcpy(new_node->data->text, text);
 
@@ -33,13 +31,16 @@ Node* create_node(int number, const char *text) {
 }
 
 /* Append a new node to the end of the list */
-void append(Node **head, int number, const char *text) {
+int append(Node **head, int number, const char *text) {
     Node *new_node;
     Node *temp;
     new_node = create_node(number, text);
+    if(new_node == NULL){
+        return 1;
+    }
     if (*head == NULL) {
         *head = new_node;
-        return;
+        return 0;
     }
 
     temp = *head;
@@ -48,6 +49,7 @@ void append(Node **head, int number, const char *text) {
     }
     temp->next = new_node;
     new_node->prev = temp;
+    return 0;
 }
 
 /* Check if a node with a given number exists in the list */
@@ -86,8 +88,9 @@ void print_list(Node *head) {
     Node *temp;
 
     temp = head;
+
     while (temp != NULL) {
-        printf("Number: %d, Text: %s\n", temp->data->line, temp->data->text);
+        printf("In line %d, encountered: %s\n", temp->data->line, temp->data->text);
         temp = temp->next;
     }
 }

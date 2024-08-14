@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "../data_types.h"
 
-int is_num_legal(char *num);
+int is_num_legal(char *num, INT_BOUND);
 
 int integer_word(char* operand);
 

@@ -17,10 +17,10 @@ typedef struct {
     char* name;
 } Reg;
 
-typedef struct label_data {
+typedef struct {
     int line;
     char *text;
-} LabelData;
+} SignData;
 
 typedef struct {
     char *label;
@@ -43,6 +43,11 @@ typedef union {
     InstructionSentence* instruction;
     CommandSentence* command;
 } Sentence;
+
+typedef enum {
+    INST_BOUND = 15,
+    COM_BOUND = 12
+} INT_BOUND;
 
 typedef enum {
     INSTRUCTION,

@@ -4,14 +4,14 @@
 #include "../data_types.h"
 
 typedef struct Node {
-    LabelData *data;
+    SignData *data;
     struct Node *prev;
     struct Node *next;
 } Node;
 
 Node* create_node(int number, const char *text);
 
-void append(Node **head, int number, const char *text);
+int append(Node **head, int number, const char *text);
 
 int exists(Node*, char*, int);
 

@@ -3,7 +3,7 @@
 #include "../../include/assembler/phase1_asm.h"
 #include "../../include/assembler/phase2_asm.h"
 
-int assembler(const char* file_name){
+int assembler(const char* file_name, HashTable* macros){
     char* src_file_name;
     FILE *assembly;
     Node* externals = NULL;
@@ -35,9 +35,13 @@ int assembler(const char* file_name){
     }
 
     declare_lists(code, data);
-    if(first_pass(assembly, &labels, &externals, &entries, code, data)){
+    if(first_pass(assembly, &labels, &externals, &entries, code, data, macros)){
         return 1;
     }
+    printf("------------------------------\n");
+    print_list(labels);
+    printf("------------------------------\n");
+
     if(second_pass(file_name, &labels, &entries, &externals, &ext_file, code, data)){
         return 1;
     }
@@ -50,14 +54,14 @@ int assembler(const char* file_name){
 
 int main(int argc, char* argv[]) {
 
+    HashTable* macros = createHashTable();
+
     while (--argc > 0) {
-        printf("Start pre-proc\n");
-        if (!pre_assembler(argv[argc])) {
+        if (pre_assembler(argv[argc], macros)) {
             continue;
         }
-        printf("Start first pass\n");
-        /*Execute the first pass, and then the second on the ".am" file.*/
-        if (assembler(argv[argc])) {
+        /* Execute the first pass, and then the second on the ".am" file. */
+        if (assembler(argv[argc], macros)) {
             continue;
         }
     }

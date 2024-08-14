@@ -13,6 +13,7 @@
 #include "../../include/common/operands/registers.h"
 #include "../../include/common/operands/integers.h"
 #include "../../include/common/operands/strings.h"
+#include "../../include/common/collections/hash_table.h"
 
 void declare_lists(SentenceList* code, SentenceList* data){
     code->head = NULL;
@@ -165,9 +166,9 @@ void args(CommandSentence* c_s, char* command){
         }
         c_s->src = sus_as_arg;
         command += strlen(sus_as_arg) + 1;
-        clear_side_blanks(&command);
+        clear_side_blanks_remove_newline(&command);
         c_s->dest = get_word(command);
-        command += strlen(c_s->dest) + 1;
+        command += strlen(c_s->dest);
         if(*command != '\0'){
             printf("WELL THATS A PROBLEM NIGGA\n");
         }
@@ -216,7 +217,7 @@ CommandSentence *pull_command(char *command, int line){
             return NULL;
         }
         strncpy(label, command, pre_label_len);
-
+        label[pre_label_len] = '\0';
         /* TODO: SPACE AFTER COMMA */
 
         if(is_valid_label(&label, 0)){
@@ -235,7 +236,15 @@ CommandSentence *pull_command(char *command, int line){
     return c_s;
 }
 
-int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, SentenceList* code, SentenceList* data){
+int first_pass(
+        FILE* src_file,
+        Node** labels,
+        Node** externals,
+        Node** entries,
+        SentenceList* code,
+        SentenceList* data,
+        HashTable* macros
+        ){
     int IC = 0, DC = 0, L = 0, error_flag = 0;
     char* line = (char*)malloc(MAX_LINE_LEN);
     InstructionSentence *i_s;
@@ -257,27 +266,27 @@ int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, 
             if (store_or_src(get_word(strchr(line, '.'))) > 0) {
                 i_s = store_data(copy);
                 if (i_s->label) {
-                    insert_label_table(labels, i_s->label, IC + 100 + DC);
+                    insert_label_table(labels, i_s->label, IC + FIRST_ADDRESS + DC);
                 }
                 DC += i_s->size;
                 add_code(data, i_s, INSTRUCTION);
             } else if (store_or_src(get_word(strchr(line, '.'))) < 0) {
-                i_s = src_handling(copy, L);
+                i_s = src_handling(copy, 0);
                 if (i_s == NULL) {
                     printf("BAD NAME\n");
                     continue;
                 }
                 if (i_s->src == 0 && !exists(*externals, i_s->label, 1)) {
-                    insert_source_label(entries, i_s->label, L);
+                    insert_source_label(entries, i_s->label, 0);
                 } else if (i_s->src == 1 && !exists(*entries, i_s->label, 1)) {
-                    insert_source_label(externals, i_s->label, L);
+                    insert_source_label(externals, i_s->label, 0);
                 }
             }
         } else {
-            c_s = pull_command(copy, L);
+            c_s = pull_command(copy, 0);
             if(c_s != NULL){
                 if(c_s->label != NULL){
-                    insert_label_table(labels, c_s->label, IC + 100);
+                    insert_label_table(labels, c_s->label, IC + FIRST_ADDRESS);
                 }
                 IC += c_s->word_count;
                 add_code(code, c_s, COMMAND);
@@ -286,6 +295,3 @@ int first_pass(FILE* src_file, Node** labels, Node** externals, Node** entries, 
     }
     return error_flag;
 }
-
-
-

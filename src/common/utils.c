@@ -132,11 +132,9 @@ char* get_line_copy(const char* origin_line){
 }
 
 void get_file(const char* file_name, char** input_file, const char* suffix){
-    size_t name_len;
-    size_t suffix_len;
-    name_len = strlen(file_name);
-    suffix_len = strlen(suffix);
-    *input_file = (char*)malloc(name_len + suffix_len);
+    size_t name_len = strlen(file_name);
+    size_t suffix_len = strlen(suffix);;
+    *input_file = (char*)malloc(name_len + suffix_len + 1);
     if(*input_file == NULL){
         printf("[ERROR] Failed to allocate memory,\n");
         return;

@@ -65,13 +65,17 @@ void write_entry_file(const char* file_name, Node** labels, Node** entries){
         printf("FAILED TO OPEN FILE\n");
         return;
     }
+
     while(entry != NULL){
         label_node = get_node(*labels, entry->data->text);
-        entry->data->line = label_node->data->line;
+        if(label_node != NULL){
+            entry->data->line = label_node->data->line;
+        }
         fprintf(f, "%s %d\n", entry->data->text, entry->data->line);
         entry = entry->next;
     }
     free(entry_file);
+    free_list(*entries);
     fclose(f);
 }
 
@@ -90,7 +94,7 @@ void write_extern_file(const char* file_name, Node** ext_file){
         return;
     }
     while(ext_label != NULL){
-        fprintf(f, "%s %d\n", ext_label->data->text, ext_label->data->line + FIRST_ADDRESS);
+        fprintf(f, "%s %d\n", ext_label->data->text, ext_label->data->line);
         ext_label = ext_label->next;
     }
     free(ext_name);
