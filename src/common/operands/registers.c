@@ -2,6 +2,11 @@
 #include "../../../include/common/library.h"
 #include "../../../include/common/operands/registers.h"
 
+/**
+ * Returns if argument is valid register or not
+ * @param str suspected as register
+ * @return 1 if valid 0 otherwise
+ */
 int is_reg(char *str){
     int i;
     if(str == NULL){
@@ -15,6 +20,11 @@ int is_reg(char *str){
     return 0;
 }
 
+/**
+ * Returns if valid register operand
+ * @param operand suspected as register operand
+ * @return 0 if not valid, 1 if valid.
+ */
 int reg_arg(char* operand){
     char *copy;
 
@@ -37,6 +47,11 @@ int reg_arg(char* operand){
     return 0;
 }
 
+/**
+ * Returns the number of register
+ * @param reg register
+ * @return it's number
+ */
 int get_reg(char* reg){
     int i;
     char* reg_cpy;

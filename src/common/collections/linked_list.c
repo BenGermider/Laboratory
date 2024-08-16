@@ -3,7 +3,12 @@
 #include <string.h>
 #include "../../../include/common/collections/linked_list.h"
 
-/* Create a new node with given data */
+/**
+ * Creates a node that holds a data which is an int and a string
+ * @param number int to hold in the node
+ * @param text string to hold in the node.
+ * @return a pointer to the node.
+ */
 Node* create_node(int number, const char *text) {
     Node *new_node;
 
@@ -30,7 +35,13 @@ Node* create_node(int number, const char *text) {
     return new_node;
 }
 
-/* Append a new node to the end of the list */
+/**
+ * Add a new node into the list
+ * @param head of the list
+ * @param number int stored in the new node
+ * @param text string stored in the new node
+ * @return code of success or failure
+ */
 int append(Node **head, int number, const char *text) {
     Node *new_node;
     Node *temp;
@@ -52,7 +63,13 @@ int append(Node **head, int number, const char *text) {
     return 0;
 }
 
-/* Check if a node with a given number exists in the list */
+/**
+ * Finds if there's a node holding that string
+ * @param head of the list
+ * @param label string to check if exists in the list
+ * @param invalid flag for an error
+ * @return 1 if exists, 0 otherwise
+ */
 int exists(Node *head, char* label, int invalid) {
     Node *temp;
 
@@ -72,6 +89,12 @@ int exists(Node *head, char* label, int invalid) {
     return 0;  /* Not found */
 }
 
+/**
+ * Get a node from the list by the string it holds
+ * @param head of the list
+ * @param label string to look for
+ * @return pointer to the desired node, NULL if there's no such node.
+ */
 Node* get_node(Node* head, char* label){
     Node *temp;
     temp = head;
@@ -84,6 +107,10 @@ Node* get_node(Node* head, char* label){
     return NULL;  /* Not found */
 }
 
+/**
+ * Prints the list
+ * @param head of the list
+ */
 void print_list(Node *head) {
     Node *temp;
 
@@ -95,7 +122,10 @@ void print_list(Node *head) {
     }
 }
 
-/* Free all nodes in the list */
+/**
+ * Frees all nodes of the list
+ * @param head of the list
+ */
 void free_list(Node *head) {
     Node *temp;
 

@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * Creates a node holding a sentence
+ * @param data of the sentence
+ * @param type of the sentence
+ * @return a pointer to the node
+ */
 SenNode* createNode(void* data, SentenceType type) {
     SenNode *newNode = (SenNode*)malloc(sizeof(SenNode));
 
@@ -20,9 +26,15 @@ SenNode* createNode(void* data, SentenceType type) {
     return newNode;
 }
 
+/**
+ * Add data to the desired list, according to it's type.
+ * @param list to add the node to
+ * @param data of the node
+ * @param type of the node
+ */
 void add_code(SentenceList* list, void* data, SentenceType type) {
     SenNode* newNode = createNode(data, type);
-    if (!newNode) return;
+    if (!newNode) return; /* Memory allocation failure */
     if (list->head == NULL) {
         list->head = newNode;
     } else {
@@ -32,7 +44,7 @@ void add_code(SentenceList* list, void* data, SentenceType type) {
         }
         current->next = (struct SenNode*) newNode;
     }
-
+    /* save the size of the code */
     if(type == INSTRUCTION){
         list->size += newNode->sentence.instruction->size;
     } else if (type == COMMAND) {
@@ -40,9 +52,15 @@ void add_code(SentenceList* list, void* data, SentenceType type) {
     }
 }
 
+/**
+ * Merge two lists
+ * @param list1 head of the merged list
+ * @param list2 to be merged
+ */
 void merge_lists(SentenceList* list1, SentenceList* list2) {
     SenNode* current;
     if (list1 == NULL) {
+        /* If list1 is empty, it's head is list2 */
         list1 = list2;
         return;
     }
@@ -55,7 +73,10 @@ void merge_lists(SentenceList* list1, SentenceList* list2) {
     list1->size += list2->size;
 }
 
-
+/**
+ * Free the list
+ * @param list to be freed.
+ */
 void freeSentenceList(SentenceList* list) {
     SenNode* current = list->head;
     SenNode* nextNode;
@@ -70,6 +91,7 @@ void freeSentenceList(SentenceList* list) {
     list->size = 0;
 }
 
+/* TODO: REMOVE ITS FOR DEBUGGING */
 void printSentenceList(SenNode* head) {
     SenNode* current = head;
     int i = 0;

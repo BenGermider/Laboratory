@@ -3,7 +3,12 @@
 #include <string.h>
 #include "../../../include/common/collections/hash_table.h"
 
-
+/**
+ * Returns the hash code for the key according to hash formula.
+ * @param key to generate hash code for.
+ * @param table_size size of the current table
+ * @return hash code for the key.
+ */
 unsigned int hash(char* key, size_t table_size) {
     unsigned int hash = 0;
     while (*key) {
@@ -13,6 +18,10 @@ unsigned int hash(char* key, size_t table_size) {
     return hash % table_size;
 }
 
+/**
+ * Initialize a hash table.
+ * @return pointer to the hash table.
+ */
 HashTable* createHashTable() {
     HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
     if (ht == NULL) {
@@ -28,6 +37,11 @@ HashTable* createHashTable() {
     return ht;
 }
 
+/**
+ * Resizes the hash table
+ * @param ht hash table to resize
+ * @param new_size desired new size for the hash table.
+ */
 void resizeHashTable(HashTable* ht, size_t new_size) {
     KeyVal** new_table = (KeyVal**)calloc(new_size, sizeof(KeyVal*));
     size_t i;
@@ -37,6 +51,7 @@ void resizeHashTable(HashTable* ht, size_t new_size) {
     }
 
     for (i = 0; i < ht->size; i++) {
+        /* move the old hash table to the new hash table */
         KeyVal* current = ht->table[i];
         while (current != NULL) {
             KeyVal* next = current->next;
@@ -52,6 +67,12 @@ void resizeHashTable(HashTable* ht, size_t new_size) {
     ht->size = new_size;
 }
 
+/**
+ * Insert a new key-val pair into the hash table.
+ * @param ht hash table to insert to.
+ * @param key of the pair
+ * @param value of the pair
+ */
 void insert(HashTable* ht, char* key, char* value) {
     unsigned int index;
     KeyVal* newPair;
@@ -59,15 +80,16 @@ void insert(HashTable* ht, char* key, char* value) {
 
     /* TODO: CHECK IF NECESSARY */
     if (ht->count >= ht->size * 0.75) {
+        /* Resize the hash table */
         resizeHashTable(ht, ht->size * 2);
     }
 
-    index = hash(key, ht->size);
+    index = hash(key, ht->size); /* Calc hash for key */
     newPair = (KeyVal*)malloc(sizeof(KeyVal));
     if (newPair == NULL) {
         return;
     }
-
+    /* Save key val pair */
     newPair->key = (char*)malloc(strlen(key) + 1);
     if (newPair->key == NULL) {
         free(newPair);
@@ -85,6 +107,7 @@ void insert(HashTable* ht, char* key, char* value) {
 
     newPair->next = NULL;
 
+    /* place new key-val in the hash-table */
     if (ht->table[index] == NULL) {
         ht->table[index] = newPair;
         ht->count++;
@@ -92,6 +115,7 @@ void insert(HashTable* ht, char* key, char* value) {
         current = ht->table[index];
         while (current != NULL) {
             if (strcmp(current->key, key) == 0) {
+                /* Override the old value */
                 free(current->value);
                 current->value = (char*)malloc(strlen(value) + 1);
                 if (current->value == NULL) {
@@ -117,6 +141,12 @@ void insert(HashTable* ht, char* key, char* value) {
     }
 }
 
+/**
+ * Get the value of the key from the hash-table.
+ * @param ht hash table that stores key-val
+ * @param key to get the value
+ * @return the value
+ */
 char* get(HashTable* ht,  char* key) {
     unsigned int index = hash(key, ht->size);
     KeyVal* current = ht->table[index];
@@ -129,6 +159,10 @@ char* get(HashTable* ht,  char* key) {
     return NULL;
 }
 
+/**
+ * Free the hash-table
+ * @param ht hash table to free allocated memory.
+ */
 void freeHashTable(HashTable* ht) {
     size_t i;
     for (i = 0; i < ht->size; i++) {
@@ -145,6 +179,7 @@ void freeHashTable(HashTable* ht) {
     free(ht);
 }
 
+/* TODO: FOR DEBUGGING, REMOVE */
 void printHashTable(HashTable* ht) {
     size_t i;
     if (ht == NULL) {

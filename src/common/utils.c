@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include "../../include/common/utils.h"
 
-
+/**
+ * Remove all blanks from the side including newline
+ * @param line to clear the edges
+ */
 void clear_side_blanks_remove_newline(char** line) {
     char* start, *end, *line_copy;
     size_t new_length;
@@ -14,10 +17,12 @@ void clear_side_blanks_remove_newline(char** line) {
     }
     start = *line;
     while (isspace((unsigned char)*start)) {
+        /* Clear left edge */
         start++;
     }
     end = *line + strlen(*line) - 1;
     while (end > start && isspace((unsigned char)*end)) {
+        /* Clear right edge */
         end--;
     }
     new_length = end - start + 1;
@@ -28,10 +33,14 @@ void clear_side_blanks_remove_newline(char** line) {
     }
     strncpy(line_copy, start, new_length);
     line_copy[new_length] = '\0';
-
+    /* Define result as the new string */
     *line = line_copy;
 }
 
+/**
+ * Clears blanks from edges, but keeps the newline in the right edge
+ * @param line to clear blanks
+ */
 void clear_side_blanks(char** line){
     char* start, *end, *line_copy;
     size_t new_length;
@@ -67,26 +76,38 @@ void clear_side_blanks(char** line){
     *line = line_copy;
 }
 
+/**
+ * Get the substring up to the first space or comma
+ * @param line to pull the substring from
+ * @return substring without commas/blanks
+ */
 char* get_word(char* line){
     int len;
     char* word;
     char* new_word = strpbrk(line, ", \t\n\v\f\r");
+    /* If the string itself is a word */
     if(!new_word){
         return line;
     }
 
     len = new_word - line;
-    word = malloc(len + 1);
+    word = (char*)malloc(len + 1);
     if(!word){
         printf("[ERROR] Failed to allocate memory");
         return NULL;
     }
 
+    /* Save new substring */
     strncpy(word, line, len);
     word[len] = '\0';
     return word;
 }
 
+/**
+ * Frees multiple dynamically allocated object at once
+ * @param amount of objects to be freed
+ * @param ...
+ */
 void free_space(int amount, ...) {
     int i;
     va_list args;
@@ -103,15 +124,22 @@ void free_space(int amount, ...) {
 }
 
 
+/**
+ * Checks whether the line is ignorable, contains no data
+ * @param line to check
+ * @return 1 if ignorable, 0 otherwise
+ */
 int is_ignorable(char *line){
     char *copy = malloc(strlen(line) + 1);
     if(!copy){
         printf("[ERROR] Failed to allocate memory...\n");
         return 0;
     }
+    /* makes a copy of the line to check */
     strcpy(copy, line);
     copy[strlen(line)] = '\0';
     clear_side_blanks(&copy);
+    /* if line is a comment or empty, it is ignorable */
     if(*copy == ';' || *copy == '\0'){
         free(copy);
         return 1;
@@ -120,6 +148,11 @@ int is_ignorable(char *line){
     return 0;
 }
 
+/**
+ * Makes a copy of the line and returns it
+ * @param origin_line
+ * @return copy
+ */
 char* get_line_copy(const char* origin_line){
     char* copy = malloc(strlen(origin_line) + 1);
     if(!copy){
@@ -131,6 +164,12 @@ char* get_line_copy(const char* origin_line){
     return copy;
 }
 
+/**
+ * Concatenates the name of the file with a desired suffix
+ * @param file_name
+ * @param input_file output of the concatenation
+ * @param suffix of the file
+ */
 void get_file(const char* file_name, char** input_file, const char* suffix){
     size_t name_len = strlen(file_name);
     size_t suffix_len = strlen(suffix);;

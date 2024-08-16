@@ -6,6 +6,12 @@
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
 
+/**
+ * Implementation of power but for int
+ * @param base
+ * @param exp
+ * @return
+ */
 int power(int base, int exp) {
     int result = 1;
     while (exp > 0) {
@@ -15,7 +21,12 @@ int power(int base, int exp) {
     return result;
 }
 
-
+/**
+ * Checks whether num is legal and between bounds
+ * @param num to check
+ * @param bounds to be between
+ * @return 1 if illegal, 0 otherwise
+ */
 int is_num_legal(char *num, INT_BOUND bounds){
     char* num_copy;
     if(num == NULL){
@@ -33,11 +44,17 @@ int is_num_legal(char *num, INT_BOUND bounds){
         (num_copy)++;
     }
     if(atoi(num) < power(-2, (bounds - 1)) || atoi(num) > (power(2, bounds - 1) - 1)){
+        /* check whether num is in bounds */
         return 1;
     }
     return 0;
 }
 
+/**
+ * Converts an int into a machine code
+ * @param operand int to be converted
+ * @return integer represented as a machine code
+ */
 int integer_word(char* operand){
     int operand_as_int = atoi(operand + 1);
     if(operand_as_int < 0){
@@ -46,6 +63,13 @@ int integer_word(char* operand){
     return (operand_as_int << DESTINATION) | ABSOLUTE;
 }
 
+/**
+ * Converts an array of integers, as a string into an array.
+ * @param line array of integers as a string
+ * @param size to count the number of integers
+ * @return array of integers
+ */
+ /* TODO: REFACTOR */
 int* pull_numbers(char* line, size_t* size) {
     char* token;
     char* token_copy;
@@ -65,6 +89,7 @@ int* pull_numbers(char* line, size_t* size) {
     strcpy(copy, line);
 
     token = strtok(copy, ",");
+
     while (token != NULL) {
         clear_side_blanks_remove_newline(&token);
         token_copy = token;
