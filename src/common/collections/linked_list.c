@@ -25,6 +25,7 @@ Node* create_node(int number, const char *text) {
     new_node->data->text = (char *)malloc(strlen(text) + 1);
     if (new_node->data->text == NULL) {
         free(new_node->data);
+        free(new_node);
         return NULL;
     }
     strcpy(new_node->data->text, text);

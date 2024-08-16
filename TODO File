@@ -12,20 +12,19 @@ ERRORS:
 
 1) memory allocation
 2) no such file
-3) line too long
 4) bad macro closing
 5) bad macro opening
 6) multiple macro declaration
 7) macro called before declaring
 8) illegal macro name
-9) illegal operation
-10) extra text
+9) illegal operation  X
+10) extra text  X
 11) illegal argument
-12) too many arguments
+12) too many arguments  X
 13) too little arguments
-14) missing comma
+14) missing comma X
 15) no label declaration
-16) too many commas
+16) too many commas X
 17) illegal label declaration (missing : for example)
 18) illegal register name
 19) illegal number

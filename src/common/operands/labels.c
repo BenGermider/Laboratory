@@ -39,21 +39,20 @@ int is_valid_label(char **label, int is_decl) {
  */
 int insert_label_table(Node **database, char *label, int lines){
     if(!exists(*database, label, 0)){
-        append(database, lines, label);
+        return append(database, lines, label);
     } else {
-        printf("[ERROR] Label already exists.\n");
-        return 1;
+        return -1;
     }
-    return 0;
 }
 
 /**
  * Insert to a source label database
- * @param list of source database
- * @param label to add
- * @param line appears
+ * @param list to insert
+ * @param label string to insert
+ * @param line to insert
+ * @return code of success or failure
  */
-void insert_source_label(Node** list, char* label, int line){
-    append(list, line, label);
+int insert_source_label(Node** list, char* label, int line){
+    return append(list, line, label);
 }
 

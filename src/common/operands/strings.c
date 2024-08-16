@@ -5,6 +5,7 @@
 #include "../../../include/common/operands/strings.h"
 #include "../../../include/common/utils.h"
 
+
 /**
  * Checks whether the string is a valid string.
  * @param str to check
@@ -32,17 +33,16 @@ int is_legal_string(char* str){
  * @param size the size of the string
  * @return array of int representing the ascii value of each character
  */
-int* get_ascii(char* line, size_t *size){
+int* get_ascii(char* line, size_t *size, int line_num, Node** errors){
     int curr_size = 1, *arr, i, *temp;
     clear_side_blanks(&line, 1);
     if(*line != '\"' || *(line + strlen(line) - 1) != '\"'){
-        printf("BAD STRING TYPE");
+        append(errors, line_num, "Bad string format.");
         return NULL;
     }
 
     arr = (int*)malloc(curr_size * sizeof(int));
     if(arr == NULL){
-        printf("FAILED TO ALLOCATE MEMORY\n");
         return NULL;
     }
 

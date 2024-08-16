@@ -13,7 +13,6 @@ SenNode* createNode(void* data, SentenceType type) {
     SenNode *newNode = (SenNode*)malloc(sizeof(SenNode));
 
     if (newNode == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
         return NULL;
     }
     if(type == INSTRUCTION){
@@ -32,9 +31,9 @@ SenNode* createNode(void* data, SentenceType type) {
  * @param data of the node
  * @param type of the node
  */
-void add_code(SentenceList* list, void* data, SentenceType type) {
+int add_code(SentenceList* list, void* data, SentenceType type) {
     SenNode* newNode = createNode(data, type);
-    if (!newNode) return; /* Memory allocation failure */
+    if (!newNode) return 1; /* Memory allocation failure */
     if (list->head == NULL) {
         list->head = newNode;
     } else {
@@ -50,6 +49,7 @@ void add_code(SentenceList* list, void* data, SentenceType type) {
     } else if (type == COMMAND) {
         list->size += newNode->sentence.command->word_count;
     }
+    return 0;
 }
 
 /**

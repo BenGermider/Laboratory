@@ -111,9 +111,13 @@ int is_ignorable(char *line){
     /* makes a copy of the line to check */
     strcpy(copy, line);
     copy[strlen(line)] = '\0';
+    if(*copy == ';'){
+        free(copy);
+        return 1;
+    }
     clear_side_blanks(&copy, 0);
     /* if line is a comment or empty, it is ignorable */
-    if(*copy == ';' || *copy == '\0'){
+    if(*copy == '\0'){
         free(copy);
         return 1;
     }

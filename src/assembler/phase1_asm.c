@@ -11,6 +11,7 @@
 #include "../../include/common/collections/linked_list.h"
 #include "../../include/common/collections/sentence_list.h"
 #include "../../include/common/operands/registers.h"
+#include "../../include/common/operands/labels.h"
 #include "../../include/common/operands/integers.h"
 #include "../../include/common/operands/strings.h"
 #include "../../include/common/collections/hash_table.h"
@@ -64,7 +65,7 @@ void declare_sentence(InstructionSentence *sen){
  * @param line instruction as string
  * @return InstructionSentence instance holding data.
  */
-InstructionSentence* store_data(char* line){
+InstructionSentence* store_data(char* line, int line_num, Node** errors){
     InstructionSentence *sen;
     char *label;
     size_t data_size;
@@ -73,7 +74,6 @@ InstructionSentence* store_data(char* line){
 
     sen = (InstructionSentence*)malloc(sizeof(InstructionSentence));
     if(!sen){
-        printf("[ERROR] Failed to allocate memory\n");
         return NULL;
     }
 
@@ -86,7 +86,7 @@ InstructionSentence* store_data(char* line){
     if(pre_label_len > 0){
         label = malloc(pre_label_len + 1);
         if(!label){
-            printf("[ERROR] Failed to allocate memory\n");
+            free(sen);
             return NULL;
         }
         strncpy(label, line, pre_label_len);
@@ -94,10 +94,8 @@ InstructionSentence* store_data(char* line){
             /* Is label, save it */
             sen->label = label;
         } else {
-            /* Invalid data given in line, quit */
-            free(label);
-            free(sen);
-            return NULL;
+            append(errors, line_num, "Illegal declaration of label");
+            return sen;
         }
     }
 
@@ -108,10 +106,9 @@ InstructionSentence* store_data(char* line){
         sen->size = data_size;
     } else {
         text = strstr(line, INSTRUCTIONS[1].name) + strlen(INSTRUCTIONS[1].name);
-        sen->data = get_ascii(text, &data_size);
+        sen->data = get_ascii(text, &data_size, line_num, errors);
         sen->size = data_size;
     }
-
     return sen;
 }
 
@@ -125,7 +122,6 @@ InstructionSentence* src_handling(char* line){
     char* label;
     i_s = (InstructionSentence*) malloc(sizeof(InstructionSentence));
     if(!i_s){
-        printf("[ERROR] Failed to allocate memory\n");
         return NULL;
     }
 
@@ -134,18 +130,14 @@ InstructionSentence* src_handling(char* line){
     /* Get the relevant source declaration and store the label */
     if(strcmp(get_word(strchr(line, '.')), INSTRUCTIONS[2].name) == 0){
         label = strstr(line, INSTRUCTIONS[2].name) + strlen(INSTRUCTIONS[2].name);
-        if(is_valid_label(&label, 0)){
+        if(is_valid_label(&label, 0)) {
             i_s->label = label;
-        } else {
-            return NULL;
         }
     } else {
         label = strstr(line, INSTRUCTIONS[3].name) + strlen(INSTRUCTIONS[3].name);
         if(is_valid_label(&label, 0)){
             i_s->label = label;
             i_s->src = 1;
-        } else {
-            return NULL;
         }
     }
     return i_s;
@@ -181,47 +173,72 @@ void get_command(CommandSentence* c_s, char* command){
 }
 
 /**
+ * Check whether argument received is a legal argument.
+ * @param arg
+ * @return 1 if true, 0 otherwise.
+ */
+int is_valid_arg(char* arg, Node** errors, int line){
+    if(reg_arg(arg) || !is_num_legal(arg, COM_BOUND, errors, line) || is_valid_label(&arg, 0)){
+        return 1;
+    }
+    return 0;
+}
+
+/**
  * Saves the arguments of the operation in the command-sentence.
  * @param c_s command-sentence to store the arguments.
  * @param command line holding the arguments.
  */
-void args(CommandSentence* c_s, char* command){
+void args(CommandSentence* c_s, char* command, int line, Node** errors){
     char *sus_as_arg;
+    int comma = 0;
     /* Get the argument amount according to the operation code */
     int args_count = OPERATIONS[c_s->operation].arg_count;
-    if(c_s->operation == -1){
-        /* TODO: ILLEGAL COMMAND HANDLING */
-        return;
-    }
     clear_side_blanks(&command, 0);
 
     if(!args_count){
         /* If no arguments, make sure there is no redundant characters */
         if(*command != '\0'){
-            printf("YOU GAY\n");
+            append(errors, line, "Redundant string.");
         }
     } else if (args_count == 1) {
         /* If 1 argument, make sure there is no redundant characters */
         if(strpbrk(command, ",: \t\n\v\f\r") != NULL){
-            printf("BAD SHET\n");
+            append(errors, line, "Redundant string.");
         }
         c_s->dest = command;
     } else {
         /* Pull 2 arguments */
         sus_as_arg = get_word(command);
         /* Get the first argument */
-        if(sus_as_arg[strlen(sus_as_arg) - 1] == ','){
-            sus_as_arg[strlen(sus_as_arg) - 1] = '\0';
-        }
+
         c_s->src = sus_as_arg;
-        command += strlen(sus_as_arg) + 1;
+
+        command += strlen(sus_as_arg);
         clear_side_blanks(&command, 1);
+
+        if(*command == ','){
+            comma = 1;
+        }
+        command++;
+        clear_side_blanks(&command, 0);
+
+        if(*command == ',' && comma){
+            append(errors, line, "Consecutive commas.");
+        }
+
+        if(!comma){
+            append(errors, line, "No commas between arguments.");
+        }
         /* Get the second argument */
         c_s->dest = get_word(command);
+        if(!is_valid_arg(c_s->dest, errors, line) || !is_valid_arg(c_s->src, errors, line)){
+            append(errors, line, "Invalid argument.");
+        }
         command += strlen(c_s->dest);
         /* Check if there are redundant characters */
         if(*command != '\0'){
-            printf("WELL THATS A PROBLEM NIGGA\n");
+            append(errors, line, "Redundant string.");
         }
     }
 }
@@ -249,14 +266,32 @@ void word_count(CommandSentence* c_s){
  * @param c_s object to store the data of the command
  * @param command string representing the command
  */
-void analyze_command(CommandSentence* c_s, char* command){
+void analyze_command(CommandSentence* c_s, char* command, int line, Node** errors){
     get_command(c_s, command);
     if(c_s->operation == -1){
-        /* TODO: ILLEGAL COMMAND HANDLING */
         return;
     }
-    args(c_s,  strstr(command, OPERATIONS[c_s->operation].name) + strlen(OPERATIONS[c_s->operation].name));
+    args(c_s,
+         strstr(command, OPERATIONS[c_s->operation].name) + strlen(OPERATIONS[c_s->operation].name),
+         line,
+         errors);
     word_count(c_s);
+}
+
+/**
+ * Checks if a macro has the label's name
+ * @param macros database of macros
+ * @param label to check
+ * @param line of the code
+ * @param errors database of errors
+ * @return 1 if there's such a macro, 0 otherwise.
+ */
+int is_label_macro(HashTable* macros, char* label, int line, Node** errors){
+    if(get(macros, label)){
+        append(errors, line, "Label and macro cannot share names.");
+        return 1;
+    }
+    return 0;
 }
 
 /**
@@ -265,7 +300,7 @@ void analyze_command(CommandSentence* c_s, char* command){
  * @param line number of line in the code.
  * @return command-sentence holding all data of the command.
  */
-CommandSentence *pull_command(char *command, int line){
+CommandSentence *pull_command(char *command, int line, Node** errors, HashTable* macros){
     CommandSentence *c_s = NULL;
     size_t pre_label_len;
     char* label;
@@ -282,14 +317,13 @@ CommandSentence *pull_command(char *command, int line){
         pre_label_len = strchr(command, ':') - command;
         label = (char*)malloc(pre_label_len + 1);
         if(!label){
-            printf("[ERROR] Failed to allocate memory\n");
             return NULL;
         }
         strncpy(label, command, pre_label_len);
         label[pre_label_len] = '\0';
         /* TODO: SPACE AFTER COMMA */
 
-        if(is_valid_label(&label, 0)){
+        if(is_valid_label(&label, 0) && !is_label_macro(macros, label, line, errors)){
             c_s->label = label;
         }
 
@@ -297,13 +331,26 @@ CommandSentence *pull_command(char *command, int line){
     }
 
     /* Store the rest of the data in the command-sentence */
-    analyze_command(c_s, command);
+    analyze_command(c_s, command, line, errors);
     if(c_s->operation == -1){
-        /* TODO: ILLEGAL COMMAND HANDLING */
+        append(errors, line, "No such operation");
         return NULL;
     }
 
     return c_s;
+}
+
+/**
+ * Frees generically two strings and an object
+ * @param sentence object to free
+ * @param str1 string to free
+ * @param str2 string to free
+ * @return 1 as a failure code.
+ */
+int free_at_error(void* sentence, char* str1, char* str2){
+    free(sentence);
+    free_space(2, str1, str2);
+    return 1;
 }
 
 /**
@@ -312,6 +359,7 @@ CommandSentence *pull_command(char *command, int line){
  * @param labels database of labels
  * @param externals database holding extern labels.
  * @param entries database holding entry labels.
+ * @param errors database holding errors occurred.
  * @param code database holding the command lines
  * @param data database holding the data.
  * @param macros database holding the macros.
@@ -322,21 +370,25 @@ int first_pass(
         Node** labels,
         Node** externals,
         Node** entries,
+        Node** errors,
         SentenceList* code,
         SentenceList* data,
         HashTable* macros
         ){
-    int IC = 0, DC = 0, L = 0, error_flag = 0;
-    char* line = (char*)malloc(MAX_LINE_LEN);
+    int IC = 0, DC = 0, L = 1, handled = 0;
+    char* line = (char*)malloc(BUFFER);
     InstructionSentence *i_s;
     CommandSentence *c_s;
     char* copy;
 
-    while (!feof(src_file) && DC + IC <= LAST_ADDRESS - FIRST_ADDRESS) {
+    while (fgets(line, MAX_LINE_LEN, src_file)) {
         /* Read each line of the file */
-        if (fgets(line, MAX_LINE_LEN, src_file) == NULL) {
-            break;
+
+        if (strlen(line) > MAX_LINE_LEN) {
+            append(errors, L, "Line too long");
+            continue;
         }
+        line[strlen(line)] = '\0';
 
         /* Skip the line if no code info inside. */
         if(is_ignorable(line)){
@@ -345,40 +397,66 @@ int first_pass(
 
         copy = get_line_copy(line);
         clear_side_blanks(&copy, 1);
+
         if(strchr(line, '.')) {
             /* Get line suspected as an instruction, and run the relevant function */
             if (store_or_src(get_word(strchr(line, '.'))) > 0) {
-                i_s = store_data(copy);
-                if (i_s->label) {
+                i_s = store_data(copy, L, errors);
+                if (i_s->label && !is_label_macro(macros, i_s->label, L, errors)) {
                     insert_label_table(labels, i_s->label, IC + FIRST_ADDRESS + DC);
                 }
                 DC += i_s->size;
                 /* save the data in the data storage */
-                add_code(data, i_s, INSTRUCTION);
+                if(add_code(data, i_s, INSTRUCTION)){
+                    return free_at_error((void*)i_s, copy, line);
+                }
+                handled = 1;
             } else if (store_or_src(get_word(strchr(line, '.'))) < 0) {
                 i_s = src_handling(copy);
                 if (i_s == NULL) {
-                    printf("BAD NAME\n");
+                    free_space(2, copy, line);
+                    return 1;
+                } else if (i_s->label == NULL){
+                    append(errors, L, "Bad label declaration.");
+                    free(i_s);
                     continue;
                 }
                 /* get the source of the label and store it in the relevant database */
-                if (i_s->src == 0 && !exists(*externals, i_s->label, 1)) {
-                    insert_source_label(entries, i_s->label, 0);
-                } else if (i_s->src == 1 && !exists(*entries, i_s->label, 1)) {
-                    insert_source_label(externals, i_s->label, 0);
+                if (i_s->src == 0 && !exists(*externals, i_s->label, 1) && !is_label_macro(macros, i_s->label, L, errors)) {
+                    if(insert_source_label(entries, i_s->label, 0)){
+                        return free_at_error((void*)i_s, copy, line);
+                    }
+                } else if (i_s->src == 1 && !exists(*entries, i_s->label, 1) && !is_label_macro(macros, i_s->label, L, errors)) {
+                    if(insert_source_label(externals, i_s->label, 0)){
+                        return free_at_error((void*)i_s, copy, line);
+                    }
                 }
+                handled = 1;
             }
-        } else {
+        }
+        if (!handled){
             /* Get the command, and store the label and the command in the database */
-            c_s = pull_command(copy, 0);
+            c_s = pull_command(copy, L, errors, macros);
             if(c_s != NULL){
-                if(c_s->label != NULL){
+                if(c_s->label != NULL && !is_label_macro(macros, c_s->label, L, errors)){
                     insert_label_table(labels, c_s->label, IC + FIRST_ADDRESS);
                 }
                 IC += c_s->word_count;
-                add_code(code, c_s, COMMAND);
+                if(add_code(code, c_s, COMMAND)){
+                    return free_at_error((void*)c_s, line, copy);
+                }
+            } else {
+                free_space(2, line, copy);
+                return 1;
             }
         }
+        L++;
+        handled = 0;
     }
-    return error_flag;
+
+    if(*errors != NULL){
+        return 1;
+    } else {
+        return 0;
+    }
 }

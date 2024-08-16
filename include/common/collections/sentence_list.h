@@ -18,7 +18,7 @@ typedef struct {
 SenNode* createNode(void* data, SentenceType type);
 
 /* Add a new node into the list */
-void add_code(SentenceList* list, void* data, SentenceType type);
+int add_code(SentenceList* list, void* data, SentenceType type);
 
 /* Merge two lists into one */
 void merge_lists(SentenceList* list1, SentenceList* list2);

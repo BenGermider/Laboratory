@@ -25,13 +25,10 @@ void declare_sentence(InstructionSentence *sen);
 int insert_label_table(Node **database, char *label, int lines);
 
 /* Handle an instruction of data storing */
-InstructionSentence* store_data(char* line);
+InstructionSentence* store_data(char*, int, Node**);
 
 /* Handle an instruction of source declaration of a label */
 InstructionSentence* src_handling(char* line);
-
-/* Insert label into the desired source label database */
-void insert_source_label(Node** list, char* label, int line);
 
 /* Initializes a command */
 void generate_command(CommandSentence *c_s);
@@ -40,27 +37,25 @@ void generate_command(CommandSentence *c_s);
 void get_command(CommandSentence* c_s, char* command);
 
 /* Reads and analyzes args of given operation */
-void args(CommandSentence* c_s, char* command);
+void args(CommandSentence*, char*, int, Node**);
 
 /* Calculates how many words the line will store in the RAM */
 void word_count(CommandSentence* c_s);
 
+/* Searches if macro and label share names */
+int is_label_macro(HashTable* macros, char* label, int line, Node** errors);
+
 /* Reads and analyzes the operation and arguments received in a line */
-void analyze_command(CommandSentence* c_s, char* command);
+void analyze_command(CommandSentence*, char*, int, Node**);
 
 /* Reads all information from a .am file */
-CommandSentence *pull_command(char *command, int line);
+CommandSentence *pull_command(char*, int, Node**, HashTable*);
 
 /* Reads the file and saves crucial data towards conversion to machine code */
-int first_pass(FILE*, Node**, Node**, Node**, SentenceList*, SentenceList*, HashTable*);
+int first_pass(FILE*, Node**, Node**, Node**, Node**, SentenceList*, SentenceList*, HashTable*);
 
 /* Initiates lists of code and data */
 void declare_lists(SentenceList*, SentenceList*);
 
-/* Returns a copy of a line */
-char* get_line_copy(const char* origin_line);
-
-/* Sets a new string which is a concatenation of a file name and a suffix. */
-void get_file(const char* file_name, char** input_file, const char* suffix);
 
 #endif /* LABORATORY_PHASE1_ASM_H */

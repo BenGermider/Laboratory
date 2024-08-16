@@ -5,7 +5,6 @@
 #include <math.h>
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
-
 /**
  * Implementation of power but for int
  * @param base
@@ -27,7 +26,7 @@ int power(int base, int exp) {
  * @param bounds to be between
  * @return 1 if illegal, 0 otherwise
  */
-int is_num_legal(char *num, INT_BOUND bounds){
+int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
     char* num_copy;
     if(num == NULL){
         return 1;
@@ -45,6 +44,7 @@ int is_num_legal(char *num, INT_BOUND bounds){
     }
     if(atoi(num) < power(-2, (bounds - 1)) || atoi(num) > (power(2, bounds - 1) - 1)){
         /* check whether num is in bounds */
+        append(errors, line, "Integer out of bounds.");
         return 1;
     }
     return 0;
