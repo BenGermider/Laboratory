@@ -4,10 +4,10 @@
 #include "../../include/assembler/phase2_asm.h"
 
 /**
- * Assembler main function, converts a .am file into machine code.
- * @param file_name without .am suffix
- * @param macros hash table of macros declared in the .as file
- * @return code of success.
+ * Assembler main function, runs second pass if first pass runs successfully.
+ * @param file_name file to convert to machine code
+ * @param macros macros found and saved in .as file
+ * @return code of success or fail.
  */
 int assembler(const char* file_name, HashTable* macros){
     char* src_file_name;
@@ -43,16 +43,17 @@ int assembler(const char* file_name, HashTable* macros){
     }
     declare_lists(code, data);
 
+    /* Executed first pass and stops if exceptions occurred */
     if(first_pass(assembly, &labels, &externals, &entries, code, data, macros)){
         return 1;
     }
-    printf("------------------------------\n");
-    print_list(labels);
-    printf("------------------------------\n");
 
+    /* Executed second pass and stops if exceptions occurred */
     if(second_pass(file_name, &labels, &entries, &externals, &ext_file, code, data)){
         return 1;
     }
+
+    /* Free dynamically allocated data */
     freeSentenceList(code);
     free(code);
 
@@ -62,16 +63,23 @@ int assembler(const char* file_name, HashTable* macros){
 
 int main(int argc, char* argv[]) {
 
+    /* Database of macros declaration */
     HashTable* macros = createHashTable();
 
     while (--argc > 0) {
+        /* Converts an assembly file into machine code file but stops if errors occurred,
+         * for every file given as an argument */
         if (pre_assembler(argv[argc], macros)) {
             continue;
         }
-        /* Execute the first pass, and then the second on the ".am" file. */
+
         if (assembler(argv[argc], macros)) {
             continue;
         }
     }
+
+    /* Free database of macros */
+    freeHashTable(macros);
+
     return 0;
 }

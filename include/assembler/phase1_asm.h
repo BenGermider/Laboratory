@@ -28,7 +28,7 @@ int insert_label_table(Node **database, char *label, int lines);
 InstructionSentence* store_data(char* line);
 
 /* Handle an instruction of source declaration of a label */
-InstructionSentence* src_handling(char* line, int src_index);
+InstructionSentence* src_handling(char* line);
 
 /* Insert label into the desired source label database */
 void insert_source_label(Node** list, char* label, int line);
