@@ -18,7 +18,7 @@
  */
 int is_valid(HashTable *ht, char* macro_line, char* macro_name){
     int i;
-    clear_side_blanks_remove_newline(&macro_line);
+    clear_side_blanks(&macro_line, 1);
     if(strcmp(strtok(macro_line, " "), macro_line) != 0){
         /* Redundant characters in macro declaration */
         return 0;
@@ -82,7 +82,7 @@ char* analyze(
     }
 
     strcpy(macro_line, line);
-    clear_side_blanks_remove_newline(&macro_line);
+    clear_side_blanks(&macro_line, 1);
     if (strncmp(macro_line, MACRO_START, strlen(MACRO_START)) == 0) {
         /* Found a macro declaration */
         macro_name_start = macro_line + strlen(MACRO_START);

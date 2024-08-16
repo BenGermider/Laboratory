@@ -5,8 +5,34 @@
 7) Create a struct called error which holds the text of the error and the line of the error, so
 every time there's an error, it will print the error and the line occured.
 
-9) Main function
-
 10) Reformat pull numbers function.
 
-11) Documentation
+
+ERRORS:
+
+1) memory allocation
+2) no such file
+3) line too long
+4) bad macro closing
+5) bad macro opening
+6) multiple macro declaration
+7) macro called before declaring
+8) illegal macro name
+9) illegal operation
+10) extra text
+11) illegal argument
+12) too many arguments
+13) too little arguments
+14) missing comma
+15) no label declaration
+16) too many commas
+17) illegal label declaration (missing : for example)
+18) illegal register name
+19) illegal number
+20) illegal string
+21) file too long
+22) number out of range
+23) illegal data declaration
+24) label's source is already defined differently
+25) label is also a macro
+26) missing space after :

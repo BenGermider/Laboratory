@@ -59,16 +59,16 @@ void write_obj_file(const char* file_name, unsigned short int* code, int IC, int
         printf("FAILED TO OPEN FILE.\n");
         return;
     }
-
+    printf("[%d][%d]\n", IC, DC);
     /* Prints the title into the file according to the protocol */
     fprintf(f, "  %d %d  \n", IC, DC);
-    for(i = 0; i < DC + IC; i++){
-        /* Adds each word as a code into the .ob file */
+    /*for(i = 0; i < DC + IC; i++){
+        *//* Adds each word as a code into the .ob file *//*
         octal = short_to_5_digit_octal(code[i]);
         fprintf(f, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
         free(octal);
-    }
-
+    }*/
+    printf(" IFINISHED BLYAT");
     free(obj_file);
     fclose(f);
 }

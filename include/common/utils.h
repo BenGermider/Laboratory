@@ -1,11 +1,8 @@
 #ifndef LABORATORY_UTILS_H
 #define LABORATORY_UTILS_H
 
-/* Clears the blanks from each side of the string including the new-line */
-void clear_side_blanks_remove_newline(char** line);
-
-/* Clears the blanks from each side of the string excluding the new-line */
-void clear_side_blanks(char**);
+/* Clears blanks from both edges of the string, including/excluding newline, depending on the flag */
+void clear_side_blanks(char**, int);
 
 /* Get a substring from a string which doesn't include a blank */
 char* get_word(char*);

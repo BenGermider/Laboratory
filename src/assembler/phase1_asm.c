@@ -171,7 +171,7 @@ void generate_command(CommandSentence *c_s){
  */
 void get_command(CommandSentence* c_s, char* command){
     int i;
-    clear_side_blanks_remove_newline(&command);
+    clear_side_blanks(&command, 1);
     for(i = 0; i < 16 ; i++){
         if(strcmp(get_word(command), OPERATIONS[i].name) == 0){
             c_s->operation = i;
@@ -193,7 +193,7 @@ void args(CommandSentence* c_s, char* command){
         /* TODO: ILLEGAL COMMAND HANDLING */
         return;
     }
-    clear_side_blanks(&command);
+    clear_side_blanks(&command, 0);
 
     if(!args_count){
         /* If no arguments, make sure there is no redundant characters */
@@ -215,7 +215,7 @@ void args(CommandSentence* c_s, char* command){
         }
         c_s->src = sus_as_arg;
         command += strlen(sus_as_arg) + 1;
-        clear_side_blanks_remove_newline(&command);
+        clear_side_blanks(&command, 1);
         /* Get the second argument */
         c_s->dest = get_word(command);
         command += strlen(c_s->dest);
@@ -344,7 +344,7 @@ int first_pass(
         }
 
         copy = get_line_copy(line);
-        clear_side_blanks_remove_newline(&copy);
+        clear_side_blanks(&copy, 1);
         if(strchr(line, '.')) {
             /* Get line suspected as an instruction, and run the relevant function */
             if (store_or_src(get_word(strchr(line, '.'))) > 0) {

@@ -11,7 +11,7 @@
  */
 int is_valid_label(char **label, int is_decl) {
     char *p;
-    clear_side_blanks_remove_newline(label);
+    clear_side_blanks(label, 1);
 
     p = *label;
     if(!isalpha(*p)){

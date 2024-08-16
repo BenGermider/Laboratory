@@ -254,17 +254,20 @@ int second_pass(
         ){
     int IC = 0;
     /* Get the machine code */
+    printf("I GOT HERE");
     unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file);
+    printf("I OUT OF HERE");
 
     if(machine_code == NULL){
         printf("GAY");
         return 1;
     }
 
-    /* Write the desired files */
+    /* Write the desired files*/
+
     write_obj_file(file_name, machine_code, IC, data->size);
-    write_entry_file(file_name, labels, entries);
-    write_extern_file(file_name, ext_file);
+    /*write_entry_file(file_name, labels, entries);
+    write_extern_file(file_name, ext_file);*/
 
     free(machine_code);
     return 0;

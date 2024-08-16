@@ -91,7 +91,7 @@ int* pull_numbers(char* line, size_t* size) {
     token = strtok(copy, ",");
 
     while (token != NULL) {
-        clear_side_blanks_remove_newline(&token);
+        clear_side_blanks(&token, 1);
         token_copy = token;
         while (*token_copy != '\0') {
             if (isspace(*token_copy)) {

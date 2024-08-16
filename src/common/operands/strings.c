@@ -34,7 +34,7 @@ int is_legal_string(char* str){
  */
 int* get_ascii(char* line, size_t *size){
     int curr_size = 1, *arr, i, *temp;
-    clear_side_blanks_remove_newline(&line);
+    clear_side_blanks(&line, 1);
     if(*line != '\"' || *(line + strlen(line) - 1) != '\"'){
         printf("BAD STRING TYPE");
         return NULL;

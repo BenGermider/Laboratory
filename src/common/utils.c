@@ -9,56 +9,30 @@
  * Remove all blanks from the side including newline
  * @param line to clear the edges
  */
-void clear_side_blanks_remove_newline(char** line) {
-    char* start, *end, *line_copy;
-    size_t new_length;
-    if (*line == NULL) {
-        return;
-    }
-    start = *line;
-    while (isspace((unsigned char)*start)) {
-        /* Clear left edge */
-        start++;
-    }
-    end = *line + strlen(*line) - 1;
-    while (end > start && isspace((unsigned char)*end)) {
-        /* Clear right edge */
-        end--;
-    }
-    new_length = end - start + 1;
-    line_copy = (char*)malloc(new_length + 1);
-    if (line_copy == NULL) {
-        printf("[ERROR] Memory allocation failed.\n");
-        return;
-    }
-    strncpy(line_copy, start, new_length);
-    line_copy[new_length] = '\0';
-    /* Define result as the new string */
-    *line = line_copy;
-}
-
 /**
- * Clears blanks from edges, but keeps the newline in the right edge
- * @param line to clear blanks
+ * Remove all blanks from the side, optionally including newline
+ * @param line to clear the edges
+ * @param remove_newline flag to determine whether to remove newline
  */
-void clear_side_blanks(char** line){
+void clear_side_blanks(char** line, int remove_newline) {
     char* start, *end, *line_copy;
     size_t new_length;
     if (*line == NULL) {
         return;
     }
-
     start = *line;
-    while (isspace((unsigned char)*start) && *start != '\n') {
+    while (isspace((unsigned char)*start) && (!remove_newline || *start != '\n')) {
+        /* Clear left edge from blanks */
         start++;
     }
 
     end = *line + strlen(*line) - 1;
-    while (end > start && isspace((unsigned char)*end) && *end != '\n') {
+    while (end > start && isspace((unsigned char)*end) && (!remove_newline || *end != '\n')) {
+        /* Clear right edge from blanks */
         end--;
     }
 
-    if (*end == '\n') {
+    if (!remove_newline && *end == '\n') {
         end++;
     }
 
@@ -69,7 +43,6 @@ void clear_side_blanks(char** line){
         printf("[ERROR] Memory allocation failed.\n");
         return;
     }
-
     strncpy(line_copy, start, new_length);
     line_copy[new_length] = '\0';
 
@@ -138,7 +111,7 @@ int is_ignorable(char *line){
     /* makes a copy of the line to check */
     strcpy(copy, line);
     copy[strlen(line)] = '\0';
-    clear_side_blanks(&copy);
+    clear_side_blanks(&copy, 0);
     /* if line is a comment or empty, it is ignorable */
     if(*copy == ';' || *copy == '\0'){
         free(copy);

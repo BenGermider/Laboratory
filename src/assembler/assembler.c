@@ -62,20 +62,21 @@ int assembler(const char* file_name, HashTable* macros){
 
 
 int main(int argc, char* argv[]) {
-
     /* Database of macros declaration */
     HashTable* macros = createHashTable();
 
     while (--argc > 0) {
+        printf("START PART 1");
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
         if (pre_assembler(argv[argc], macros)) {
             continue;
         }
-
+        printf("FINISHED PART 1");
         if (assembler(argv[argc], macros)) {
             continue;
         }
+        printf("FINISHED PART 2");
     }
 
     /* Free database of macros */
