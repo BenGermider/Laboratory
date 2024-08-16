@@ -8,20 +8,28 @@
 #include "../../include/common/collections/sentence_list.h"
 #include "../../include/common/consts.h"
 
-int get_operand_type(char* operand);
+/* Differentiate between types of operands received in the code */
+int get_operand_type(char*, INT_BOUND);
 
+/* Converts a command into a number */
 unsigned short int operation_as_num(CommandSentence*);
 
+/* Gets code for storing two registers in one word. */
 unsigned short int two_regs(char*, char*);
 
+/* Converts a line of command into a number */
 unsigned short int operand_as_code(char*, Node**, Node**, OPERAND);
 
+/* Sets the value of the operands in the command */
 void handle_operands(unsigned short int**, CommandSentence*, Node**, Node**);
 
+/* Convert all commands into a code */
 unsigned short int* get_command_code(CommandSentence*, Node**,  Node**, Node**);
 
+/* Convert all instructions into a code */
 unsigned short int* get_instruction_code(InstructionSentence*);
 
+/* Gets machine code for given commands and instructions */
 unsigned short int* calc_code(
         SentenceList*,
         SentenceList*,
@@ -32,6 +40,7 @@ unsigned short int* calc_code(
         Node**
 );
 
+/* Converts data received from first pass into desired output files */
 int second_pass(
         const char*,
         Node** labels,

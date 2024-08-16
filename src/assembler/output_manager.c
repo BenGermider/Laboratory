@@ -44,7 +44,7 @@ void write_obj_file(const char* file_name, unsigned short int* code, int IC, int
     fprintf(f, "  %d %d  \n", IC, DC);
     for(i = 0; i < DC + IC; i++){
         octal = short_to_5_digit_octal(code[i]);
-        fprintf(f, "%d\t%s\n", FIRST_ADDRESS + i, octal);
+        fprintf(f, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
         free(octal);
     }
     free(obj_file);
@@ -94,7 +94,7 @@ void write_extern_file(const char* file_name, Node** ext_file){
         return;
     }
     while(ext_label != NULL){
-        fprintf(f, "%s %d\n", ext_label->data->text, ext_label->data->line);
+        fprintf(f, "%s %04d\n", ext_label->data->text, ext_label->data->line);
         ext_label = ext_label->next;
     }
     free(ext_name);

@@ -5,7 +5,16 @@
 #include <math.h>
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
-#include "../../../include/common/data_types.h"
+
+int power(int base, int exp) {
+    int result = 1;
+    while (exp > 0) {
+        result *= base;
+        exp--;
+    }
+    return result;
+}
+
 
 int is_num_legal(char *num, INT_BOUND bounds){
     char* num_copy;
@@ -23,7 +32,7 @@ int is_num_legal(char *num, INT_BOUND bounds){
         }
         (num_copy)++;
     }
-    if(atoi(num) < pow(-2, (bounds - 1)) || atoi(num) > (pow(2, bounds - 1) - 1)){
+    if(atoi(num) < power(-2, (bounds - 1)) || atoi(num) > (power(2, bounds - 1) - 1)){
         return 1;
     }
     return 0;
@@ -68,7 +77,7 @@ int* pull_numbers(char* line, size_t* size) {
             }
             token_copy++;
         }
-        if (is_num_legal(token)) {
+        if (is_num_legal(token, INST_BOUND)) {
             if (i >= capacity) {
                 capacity *= 2;
                 temp = (int*)realloc(arr, capacity * sizeof(int));

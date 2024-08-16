@@ -7,10 +7,10 @@
 #include "../../include/common/collections/sentence_list.h"
 #include "../../include/common/consts.h"
 
-int get_operand_type(char* operand){
+int get_operand_type(char* operand, INT_BOUND bound){
     if(operand == NULL) {
         return -1;
-    } else if (*operand == '#' && is_num_legal(operand + 1)){
+    } else if (*operand == '#' && is_num_legal(operand + 1, bound)){
         return 0;
     } else if (is_reg(operand)) {
         return 3;
@@ -25,11 +25,11 @@ unsigned short int operation_as_num(CommandSentence* c_s){
     int op = 0;
     int padding;
     op |= c_s->operation << OPCODE;
-    padding = get_operand_type(c_s->src);
+    padding = get_operand_type(c_s->src, COM_BOUND);
     if(padding >= 0){
         op |= (1 << (SOURCE + padding));
     }
-    padding = get_operand_type(c_s->dest);
+    padding = get_operand_type(c_s->dest, COM_BOUND);
     if(padding >= 0){
         op |= (1 << (DESTINATION + padding));
     }
@@ -46,7 +46,7 @@ unsigned short int two_regs(char* reg1, char* reg2){
 
 unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
     Node* operand_node;
-    if(*operand == '#' && is_num_legal(operand + 1)){
+    if(*operand == '#' && is_num_legal(operand + 1, COM_BOUND)){
         return integer_word(operand);
     } else if(exists(*externals, operand, 0)){
         return 1;
