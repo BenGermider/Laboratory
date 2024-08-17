@@ -5,20 +5,6 @@
 #include <math.h>
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
-/**
- * Implementation of power but for int
- * @param base
- * @param exp
- * @return
- */
-int power(int base, int exp) {
-    int result = 1;
-    while (exp > 0) {
-        result *= base;
-        exp--;
-    }
-    return result;
-}
 
 /**
  * Checks whether num is legal and between bounds
@@ -28,11 +14,13 @@ int power(int base, int exp) {
  */
 int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
     char* num_copy;
+    int min_bound = -(1 << (bounds - 1));
+    int max_bound = (1 << (bounds - 1)) - 1;
     if(num == NULL){
         return 1;
     }
     num_copy = num;
-    if(!isdigit(*num) || *num != '+' || *num != '-'){
+    if(!isdigit(*num) && *num != '+' && *num != '-'){
         return 1;
     }
     num_copy++;
@@ -42,7 +30,7 @@ int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
         }
         (num_copy)++;
     }
-    if(atoi(num) < power(-2, (bounds - 1)) || atoi(num) > (power(2, bounds - 1) - 1)){
+    if(atoi(num) < min_bound || atoi(num) > max_bound){
         /* check whether num is in bounds */
         append(errors, line, "Integer out of bounds.");
         return 1;
@@ -70,7 +58,7 @@ int integer_word(char* operand){
  * @return array of integers
  */
  /* TODO: REFACTOR */
-int* pull_numbers(char* line, size_t* size) {
+int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
     char* token;
     char* token_copy;
     size_t i = 0;
@@ -87,22 +75,21 @@ int* pull_numbers(char* line, size_t* size) {
         return NULL;
     }
     strcpy(copy, line);
-
     token = strtok(copy, ",");
 
     while (token != NULL) {
-        clear_side_blanks(&token, 1);
+        clear_side_blanks(&token, 0);
         token_copy = token;
         while (*token_copy != '\0') {
             if (isspace(*token_copy)) {
                 free(copy);
                 free(arr);
-                printf("[ERROR] Numbers are not separated properly\n");
+                append(errors, line_num, "Numbers are not separated properly");
                 return NULL;
             }
             token_copy++;
         }
-        if (is_num_legal(token, INST_BOUND)) {
+        if (!is_num_legal(token, INST_BOUND, errors, line_num)) {
             if (i >= capacity) {
                 capacity *= 2;
                 temp = (int*)realloc(arr, capacity * sizeof(int));

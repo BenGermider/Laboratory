@@ -102,7 +102,7 @@ InstructionSentence* store_data(char* line, int line_num, Node** errors){
     /* Store the data in the Instruction Sentence */
     if(strcmp(get_word(strchr(line, '.')), INSTRUCTIONS[0].name) == 0){
         text = strstr(line, INSTRUCTIONS[0].name) + strlen(INSTRUCTIONS[0].name);
-        sen->data = pull_numbers(text, &data_size);
+        sen->data = pull_numbers(text, &data_size, errors, line_num);
         sen->size = data_size;
     } else {
         text = strstr(line, INSTRUCTIONS[1].name) + strlen(INSTRUCTIONS[1].name);
@@ -178,7 +178,10 @@ void get_command(CommandSentence* c_s, char* command){
  * @return 1 if true, 0 otherwise.
  */
 int is_valid_arg(char* arg, Node** errors, int line){
-    if(reg_arg(arg) || !is_num_legal(arg, COM_BOUND, errors, line) || is_valid_label(&arg, 0)){
+    if(*arg == '#' && !is_num_legal(arg + 1, COM_BOUND, errors, line)){
+        return 1;
+    }
+    else if(reg_arg(arg) ||  is_valid_label(&arg, 0)){
         return 1;
     }
     return 0;
@@ -192,38 +195,37 @@ int is_valid_arg(char* arg, Node** errors, int line){
 void args(CommandSentence* c_s, char* command, int line, Node** errors){
     char *sus_as_arg;
     int comma = 0;
+    char* txt = command;
     /* Get the argument amount according to the operation code */
     int args_count = OPERATIONS[c_s->operation].arg_count;
-    clear_side_blanks(&command, 0);
+    clear_side_blanks(&txt, 0);
 
     if(!args_count){
         /* If no arguments, make sure there is no redundant characters */
-        if(*command != '\0'){
+        if(*txt != '\0'){
             append(errors, line, "Redundant string.");
         }
     } else if (args_count == 1) {
+        txt = get_word(txt);
         /* If 1 argument, make sure there is no redundant characters */
-        if(strpbrk(command, ",: \t\n\v\f\r") != NULL){
+        if(strpbrk(txt, ",: \t\n\v\f\r") != NULL){
             append(errors, line, "Redundant string.");
         }
-        c_s->dest = command;
+        c_s->dest = txt;
     } else {
         /* Pull 2 arguments */
-        sus_as_arg = get_word(command);
+        sus_as_arg = get_word(txt);
         /* Get the first argument */
-
         c_s->src = sus_as_arg;
 
-        command += strlen(sus_as_arg);
-        clear_side_blanks(&command, 1);
-
-        if(*command == ','){
+        txt += strlen(sus_as_arg);
+        clear_side_blanks(&txt, 1);
+        if(*txt == ','){
             comma = 1;
         }
-        command++;
-        clear_side_blanks(&command, 0);
-
-        if(*command == ',' && comma){
+        txt++;
+        clear_side_blanks(&txt, 0);
+        if(*txt == ',' && comma){
             append(errors, line, "Consecutive commas.");
         }
 
@@ -231,13 +233,13 @@ void args(CommandSentence* c_s, char* command, int line, Node** errors){
             append(errors, line, "No commas between arguments.");
         }
         /* Get the second argument */
-        c_s->dest = get_word(command);
+        c_s->dest = get_word(txt);
         if(!is_valid_arg(c_s->dest, errors, line) || !is_valid_arg(c_s->src, errors, line)){
             append(errors, line, "Invalid argument.");
         }
-        command += strlen(c_s->dest);
+        txt += strlen(c_s->dest);
         /* Check if there are redundant characters */
-        if(*command != '\0'){
+        if(*txt != '\0'){
             append(errors, line, "Redundant string.");
         }
     }
@@ -304,7 +306,9 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
     CommandSentence *c_s = NULL;
     size_t pre_label_len;
     char* label;
-
+    char* txt;
+    txt = (char*)malloc(strlen(command) + 1);
+    strcpy(txt, command);
     /* Initialize the command */
     c_s = (CommandSentence*)malloc(sizeof(CommandSentence));
     if(!c_s){
@@ -333,6 +337,7 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
     /* Store the rest of the data in the command-sentence */
     analyze_command(c_s, command, line, errors);
     if(c_s->operation == -1){
+        printf("GAY %s\n", txt);
         append(errors, line, "No such operation");
         return NULL;
     }
@@ -351,6 +356,17 @@ int free_at_error(void* sentence, char* str1, char* str2){
     free(sentence);
     free_space(2, str1, str2);
     return 1;
+}
+
+void update_line(char* label, int line, Node** externals, Node** entries){
+    Node* test;
+    if((test = get_node(*externals, label))){
+        printf("EXT\n");
+        test->data->line = line;
+    } else if((test = get_node(*entries, label))){
+        printf("ENT\n");
+        test->data->line = line;
+    }
 }
 
 /**
@@ -381,22 +397,23 @@ int first_pass(
     CommandSentence *c_s;
     char* copy;
 
-    while (fgets(line, MAX_LINE_LEN, src_file)) {
+    while (fgets(line, BUFFER, src_file)) {
         /* Read each line of the file */
+
+        if(is_ignorable(line)){
+            continue;
+        }
 
         if (strlen(line) > MAX_LINE_LEN) {
             append(errors, L, "Line too long");
             continue;
         }
         line[strlen(line)] = '\0';
-
         /* Skip the line if no code info inside. */
-        if(is_ignorable(line)){
-            continue;
-        }
+
 
         copy = get_line_copy(line);
-        clear_side_blanks(&copy, 1);
+        clear_side_blanks(&copy, 0);
 
         if(strchr(line, '.')) {
             /* Get line suspected as an instruction, and run the relevant function */
@@ -406,6 +423,7 @@ int first_pass(
                     insert_label_table(labels, i_s->label, IC + FIRST_ADDRESS + DC);
                 }
                 DC += i_s->size;
+                i_s->pos = L;
                 /* save the data in the data storage */
                 if(add_code(data, i_s, INSTRUCTION)){
                     return free_at_error((void*)i_s, copy, line);
@@ -440,8 +458,10 @@ int first_pass(
             if(c_s != NULL){
                 if(c_s->label != NULL && !is_label_macro(macros, c_s->label, L, errors)){
                     insert_label_table(labels, c_s->label, IC + FIRST_ADDRESS);
+                    update_line(c_s->label, IC + FIRST_ADDRESS, externals, entries);
                 }
                 IC += c_s->word_count;
+                c_s->pos = L;
                 if(add_code(code, c_s, COMMAND)){
                     return free_at_error((void*)c_s, line, copy);
                 }

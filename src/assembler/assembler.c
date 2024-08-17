@@ -9,6 +9,7 @@
  * @param entries
  * @param externals
  * @param ext_file
+ * @param errors
  * @param code
  * @param data
  */
@@ -17,6 +18,7 @@ void free_all(
         Node* entries,
         Node* externals,
         Node* ext_file,
+        Node* errors,
         SentenceList* code,
         SentenceList* data,
         char* file_name
@@ -33,8 +35,12 @@ void free_all(
     if(ext_file != NULL){
         free_list(ext_file);
     }
+    if(errors != NULL){
+        free_list(errors);
+    }
     freeSentenceList(code);
     freeSentenceList(data);
+    free(file_name);
 }
 
 /**
@@ -83,18 +89,19 @@ int assembler(const char* file_name, HashTable* macros, Node** errors){
 
     /* Executed first pass and stops if exceptions occurred */
     if(first_pass(assembly, &labels, &externals, &entries, errors, code, data, macros)){
-        free_all(labels, entries, externals, ext_file, code, data, src_file_name);
+        print_list(*errors);
+        free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
         return 1;
     }
-
     /* Executed second pass and stops if exceptions occurred */
-    if(second_pass(file_name, &labels, &entries, &externals, &ext_file, code, data)){
-        free_all(labels, entries, externals, ext_file, code, data, src_file_name);
+    if(second_pass(file_name, &labels, &entries, &externals, &ext_file, errors, code, data)){
+        free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
+        print_list(*errors);
         return 1;
     }
 
     /* Free dynamically allocated data */
-    free_all(labels, entries, externals, ext_file, code, data, src_file_name);
+    free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
     return 0;
 }
 
@@ -104,17 +111,17 @@ int main(int argc, char* argv[]) {
     Node* errors = NULL;
 
     while (--argc > 0) {
-        printf("START PART 1");
+        printf("START PART 1\n");
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
         if (pre_assembler(argv[argc], macros)) {
             continue;
         }
-        printf("FINISHED PART 1");
+        printf("FINISHED PART 1\n");
         if (assembler(argv[argc], macros, &errors)) {
             continue;
         }
-        printf("FINISHED PART 2");
+        printf("FINISHED PART 2\n");
     }
     /* TODO: MAKE FILES HERE */
 

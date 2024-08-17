@@ -59,16 +59,14 @@ void write_obj_file(const char* file_name, unsigned short int* code, int IC, int
         printf("FAILED TO OPEN FILE.\n");
         return;
     }
-    printf("[%d][%d]\n", IC, DC);
     /* Prints the title into the file according to the protocol */
     fprintf(f, "  %d %d  \n", IC, DC);
-    /*for(i = 0; i < DC + IC; i++){
-        *//* Adds each word as a code into the .ob file *//*
+    for(i = 0; i < DC + IC; i++){
+    /* Adds each word as a code into the .ob file*/
         octal = short_to_5_digit_octal(code[i]);
         fprintf(f, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
         free(octal);
-    }*/
-    printf(" IFINISHED BLYAT");
+    }
     free(obj_file);
     fclose(f);
 }
@@ -83,7 +81,6 @@ void write_entry_file(const char* file_name, Node** labels, Node** entries){
     char* entry_file;
     Node* label_node, *entry;
     FILE* f;
-
     /* Get the name of the file with the suffix and open it */
     get_file(file_name, &entry_file, ".ent");
     entry = *entries;
@@ -91,24 +88,21 @@ void write_entry_file(const char* file_name, Node** labels, Node** entries){
         /* stop if no entry labels */
         return;
     }
-    f = fopen(entry_file, "w");
+     f = fopen(entry_file, "w");
     if(!f){
         printf("FAILED TO OPEN FILE\n");
         return;
     }
-
     /* Put in the .entry file every label declared as .entry and where it appears in code */
     while(entry != NULL){
         label_node = get_node(*labels, entry->data->text);
         if(label_node != NULL){
             entry->data->line = label_node->data->line;
         }
-        fprintf(f, "%s %d\n", entry->data->text, entry->data->line);
+        fprintf(f, "%s %04d\n", entry->data->text, entry->data->line);
         entry = entry->next;
     }
-
     free(entry_file);
-    free_list(*entries);
     fclose(f);
 }
 

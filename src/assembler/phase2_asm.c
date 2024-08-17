@@ -16,7 +16,7 @@
 int get_operand_type(char* operand, INT_BOUND bound){
     if(operand == NULL) {
         return -1;
-    } else if (*operand == '#' && is_num_legal(operand + 1, bound)){
+    } else if (*operand == '#' && is_num_legal(operand + 1, bound, NULL, 0)){
         return 0;
     } else if (is_reg(operand)) {
         return 3;
@@ -27,28 +27,49 @@ int get_operand_type(char* operand, INT_BOUND bound){
     }
 }
 
+void is_valid_operand(CommandSentence *c_s, Node** errors, int src_type, int dest_type){
+    int i, is_valid = 0;
+    for(i = 0; i < sizeof(OPERATIONS[0].src_arg) / sizeof(OPERATIONS[0].src_arg[0]); i++){
+        if(src_type == OPERATIONS[c_s->operation].src_arg[i]){
+            is_valid = 1;
+            break;
+
+        }
+    }
+    if(!is_valid){
+        append(errors, c_s->pos, "Invalid operand for operation.");
+    }
+    for(i = 0; i < sizeof(OPERATIONS[0].dest_arg) / sizeof(OPERATIONS[0].dest_arg[0]); i++){
+        if(dest_type == OPERATIONS[c_s->operation].dest_arg[i]){
+            return;
+        }
+    }
+    append(errors, c_s->pos, "Invalid operand for operation.");
+}
+
 /**
  * Converts a command with operation to an integer
  * @param c_s command holding opcode and arguments
  * @return the command as short uint
  */
-unsigned short int operation_as_num(CommandSentence* c_s){
+unsigned short int operation_as_num(CommandSentence* c_s, Node** errors){
     int op = 0;
-    int padding;
+    int src_pad, dest_pad;
     /* store the opcode */
     op |= c_s->operation << OPCODE;
     /* store source operand if there is one */
-    padding = get_operand_type(c_s->src, COM_BOUND);
-    if(padding >= 0){
-        op |= (1 << (SOURCE + padding));
+    src_pad = get_operand_type(c_s->src, COM_BOUND);
+    if(src_pad >= 0){
+        op |= (1 << (SOURCE + src_pad));
     }
     /* store destination operand if there is one */
-    padding = get_operand_type(c_s->dest, COM_BOUND);
-    if(padding >= 0){
-        op |= (1 << (DESTINATION + padding));
+    dest_pad = get_operand_type(c_s->dest, COM_BOUND);
+    if(dest_pad >= 0){
+        op |= (1 << (DESTINATION + dest_pad));
     }
     /* all commands declarations are absolute, so add it to the code */
     op |= ABSOLUTE;
+    is_valid_operand(c_s, errors, src_pad, dest_pad);
     return op;
 }
 
@@ -75,7 +96,7 @@ unsigned short int two_regs(char* reg1, char* reg2){
  */
 unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
     Node* operand_node;
-    if(*operand == '#' && is_num_legal(operand + 1, COM_BOUND)){ /* Integer */
+    if(*operand == '#' && is_num_legal(operand + 1, COM_BOUND, NULL, 0)){ /* Integer */
         return integer_word(operand);
     } else if(exists(*externals, operand, 0)){ /* External label */
         return 1;
@@ -128,7 +149,7 @@ void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, No
  * @param externals database of extern labels of the code
  * @return words as machine code to be stored in the memory.
  */
-unsigned short int* get_command_code(CommandSentence* c_s, Node** labels,  Node** entries, Node** externals) {
+unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node** labels,  Node** entries, Node** externals) {
     unsigned short int* machine_code = (unsigned short int*)calloc(c_s->word_count, sizeof(unsigned short int));
     if (!machine_code) {
         printf("FAILED TO ALLOCATE MEMORY.\n");
@@ -136,7 +157,7 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** labels,  Node*
     }
 
     /* store command as the first word */
-    machine_code[0] = operation_as_num(c_s);
+    machine_code[0] = operation_as_num(c_s, errors);
 
     /* handle next words (operands) */
     handle_operands(&machine_code, c_s, labels, externals);
@@ -174,7 +195,7 @@ unsigned short int* get_instruction_code(InstructionSentence* i_s){
  * @param ext_file database of extern labels to store in a file
  * @return machine code for the assembly file.
  */
-unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** ext_file){
+unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** ext_file, Node** errors){
     int i, L = 0;
     SenNode* current_line;
     unsigned short int* translation = NULL;
@@ -183,16 +204,14 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
 
     merge_lists(code, data);
     machine_code = (unsigned short int*)calloc(code->size, sizeof(unsigned short int));
+    if(!machine_code){ return NULL; }
 
-    /* TODO: FREE DATA INSTEAD OF JUST EXITING */
-    if(!machine_code){ printf("FAILED TO ALLOCATE MEMORY.\n"); exit(1); }
     current_line = code->head;
-
     while (current_line != NULL && *IC + data->size <= LAST_ADDRESS - FIRST_ADDRESS) {
         /* Iterate over the lines */
         if (current_line->type == COMMAND) {
             /* Convert the command into words and store them in the machine code array. */
-            translation = get_command_code(current_line->sentence.command, labels, entries, externals);
+            translation = get_command_code(current_line->sentence.command, errors, labels, entries, externals);
 
             if (translation != NULL) {
                 for (i = 0; i < current_line->sentence.command->word_count; i++) {
@@ -249,25 +268,25 @@ int second_pass(
         Node** entries,
         Node** externals,
         Node** ext_file,
+        Node** errors,
         SentenceList* code,
         SentenceList* data
         ){
     int IC = 0;
     /* Get the machine code */
-    printf("I GOT HERE");
-    unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file);
-    printf("I OUT OF HERE");
-
+    unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file, errors);
     if(machine_code == NULL){
-        printf("GAY");
+        return 1;
+    }
+    /* Write the desired files*/
+    if(*errors != NULL){
+        free(machine_code);
         return 1;
     }
 
-    /* Write the desired files*/
-
     write_obj_file(file_name, machine_code, IC, data->size);
-    /*write_entry_file(file_name, labels, entries);
-    write_extern_file(file_name, ext_file);*/
+    write_entry_file(file_name, labels, entries);
+    write_extern_file(file_name, ext_file);
 
     free(machine_code);
     return 0;

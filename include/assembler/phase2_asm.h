@@ -12,7 +12,7 @@
 int get_operand_type(char*, INT_BOUND);
 
 /* Converts a command into a number */
-unsigned short int operation_as_num(CommandSentence*);
+unsigned short int operation_as_num(CommandSentence*, Node**);
 
 /* Gets code for storing two registers in one word. */
 unsigned short int two_regs(char*, char*);
@@ -24,7 +24,7 @@ unsigned short int operand_as_code(char*, Node**, Node**, OPERAND);
 void handle_operands(unsigned short int**, CommandSentence*, Node**, Node**);
 
 /* Convert all commands into a code */
-unsigned short int* get_command_code(CommandSentence*, Node**,  Node**, Node**);
+unsigned short int* get_command_code(CommandSentence*, Node**,  Node**, Node**, Node**);
 
 /* Convert all instructions into a code */
 unsigned short int* get_instruction_code(InstructionSentence*);
@@ -34,6 +34,7 @@ unsigned short int* calc_code(
         SentenceList*,
         SentenceList*,
         int*,
+        Node**,
         Node**,
         Node**,
         Node**,
@@ -47,6 +48,7 @@ int second_pass(
         Node** entries,
         Node** externals,
         Node** ext_file,
+        Node** errors,
         SentenceList* code,
         SentenceList* data
 );

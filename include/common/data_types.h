@@ -7,6 +7,8 @@ typedef struct {
     char* name;
     int opcode;
     int arg_count;
+    int src_arg[4];
+    int dest_arg[4];
 } Operation;
 
 typedef struct {

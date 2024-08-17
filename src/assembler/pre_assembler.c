@@ -82,7 +82,7 @@ char* analyze(
     }
 
     strcpy(macro_line, line);
-    clear(&macro_line, 1);
+    clear_side_blanks(&macro_line, 1);
     if (strncmp(macro_line, MACRO_START, strlen(MACRO_START)) == 0) {
         /* Found a macro declaration */
         macro_name_start = macro_line + strlen(MACRO_START);
