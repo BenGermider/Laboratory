@@ -107,26 +107,28 @@ int assembler(const char* file_name, HashTable* macros, Node** errors){
 
 int main(int argc, char* argv[]) {
     /* Database of macros declaration */
+    int i;
     HashTable* macros = createHashTable();
-    Node* errors = NULL;
+    Node* errors = NULL;;
 
-    while (--argc > 0) {
-        printf("START PART 1\n");
+    for(i = 1; i < argc; i++){
+        flush_list(&errors);
+        flushHashTable(macros);
+
+        printf("[MAIN PROCESS] Assembler works on %s\n", argv[i]);
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
-        if (pre_assembler(argv[argc], macros)) {
+        if (pre_assembler(argv[i], macros)) {
             continue;
         }
-        printf("FINISHED PART 1\n");
-        if (assembler(argv[argc], macros, &errors)) {
+        if (assembler(argv[i], macros, &errors)) {
             continue;
         }
-        printf("FINISHED PART 2\n");
+        printf("[MAIN PROCESS] %s has been assembled successfully.\n", argv[i]);
     }
     /* TODO: MAKE FILES HERE */
-
-    /* Free database of macros */
     freeHashTable(macros);
-
+    free_list(errors);
+    /* Free database of macros */
     return 0;
 }

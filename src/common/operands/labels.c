@@ -36,9 +36,9 @@ int valid_label_decl(char** label, HashTable *macros){
     if(!is_valid_label(label, 1)){
         return 0;
     }
-    if(get(macros, *label)){
+    /*if(get(macros, *label)){
         return 0;
-    }
+    }*/
     if(reg_arg(*label)){
         return 0;
     }

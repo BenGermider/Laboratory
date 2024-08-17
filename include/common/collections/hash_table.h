@@ -35,6 +35,8 @@ char* get(HashTable* ht, char* key);
 /* Free each pair of the hash table up to clearing the entire table */
 void freeHashTable(HashTable* ht);
 
+void flushHashTable(HashTable* ht);
+
 /* Prints the hash table TODO: REMOVE IT'S FOR DEBUGGING */
 void printHashTable(HashTable* ht);
 #endif

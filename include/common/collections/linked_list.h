@@ -27,4 +27,6 @@ void print_list(Node *head);
 /* Free a list at the end of the use */
 void free_list(Node *head);
 
+void flush_list(Node **head);
+
 #endif /* LINKED_LIST_H */

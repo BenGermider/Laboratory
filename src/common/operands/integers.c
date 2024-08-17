@@ -68,13 +68,13 @@ int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
     int* arr, *final_arr, *temp;
 
     copy = (char*)malloc(strlen(line) + 1);
+    if(!copy){ return NULL; }
     arr = (int*)malloc(capacity * sizeof(int));
-    if (copy == NULL || arr == NULL) {
-        printf("[ERROR] Failed to allocate memory\n");
+    if (arr == NULL) {
         free(copy);
-        free(arr);
         return NULL;
     }
+
     strcpy(copy, line);
     token = strtok(copy, ",");
 
@@ -95,7 +95,6 @@ int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
                 capacity *= 2;
                 temp = (int*)realloc(arr, capacity * sizeof(int));
                 if (temp == NULL) {
-                    printf("[ERROR] Failed to allocate memory\n");
                     free(copy);
                     free(arr);
                     return NULL;

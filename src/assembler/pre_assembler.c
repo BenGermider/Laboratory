@@ -77,37 +77,9 @@ char* analyze(
         /* Failed to allocate memory - critical error */
         return NULL;
     }
-
     strcpy(macro_line, line);
-    clear_side_blanks(&macro_line, 1);
-    if ((extra_char = strstr(macro_line, MACRO_START))) {
-        if(extra_char - macro_line != 0){
-            append(errors, current_line, "Label declaration did not open properly.");
-        }
-        /* Found a macro declaration */
-        macro_name_start = extra_char + strlen(MACRO_START);
-        if (!is_valid(ht, macro_name_start, macro_name)) {
-            /* Handle macro name declaration, alert if errors */
-            if(append(errors, current_line, "Bad macro name")){
-                free(macro_line);
-                return NULL;
-            }
-            free(macro_line);
-            /* Macro is not part of .am file, return empty string to not write it to .am */
-            return "";
-        }
-        if(get(ht, macro_name)){
-            append(errors, current_line, "Macro already exists");
-        }
-        if(*(macro_line + strlen(macro_name)) != '\0'){
-            append(errors, current_line, "Label declaration did not open properly.");
-        }
-        *in_macro = 1;
-        free(macro_line);
-        return "";
-    }
-
-    else if ((extra_char = strstr(macro_line, MACRO_END))) {
+    clear_side_blanks(&macro_line, 0);
+    if ((extra_char = strstr(macro_line, MACRO_END))) {
         /* Found macro ending, add it into the macro database */
         if(extra_char - macro_line != 0){
             append(errors, current_line, "Label declaration did not close properly.");
@@ -122,9 +94,33 @@ char* analyze(
 
         free(macro_line);
         return "";
-    }
-
-    else if (*in_macro) {
+    } else if ((extra_char = strstr(macro_line, MACRO_START))) {
+        if(extra_char - macro_line != 0){
+            append(errors, current_line, "Label declaration did not open properly.");
+        }
+        /* Found a macro declaration */
+        macro_name_start = extra_char + strlen(MACRO_START);
+        clear_side_blanks(&macro_name_start, 0);
+        if (!is_valid(ht, macro_name_start, macro_name)) {
+            /* Handle macro name declaration, alert if errors */
+            if(append(errors, current_line, "Bad macro name")){
+                free(macro_line);
+                return NULL;
+            }
+            free(macro_line);
+            /* Macro is not part of .am file, return empty string to not write it to .am */
+            return "";
+        }
+        if(get(ht, macro_name)){
+            append(errors, current_line, "Macro already exists");
+        }
+        if(*(macro_name_start + strlen(macro_name)) != '\0'){
+            append(errors, current_line, "Label declaration did not open properly.");
+        }
+        *in_macro = 1;
+        free(macro_line);
+        return "";
+    } else if (*in_macro) {
         /* add line into the macro */
         strcat(macro_content, line);
         free(macro_line);
@@ -155,9 +151,8 @@ int order_as_file(FILE *input_file, FILE *output_file, Node** errors_list, HashT
     int in_macro = 0;
     int current_line = 1;
     char* to_output;
-
-    char *line = (char*) malloc(BUFFER);
-    char *macro_name = (char*) malloc(MAX_LINE_LEN);
+    char *line = (char*)malloc(BUFFER);
+    char *macro_name = (char*)malloc(MAX_LINE_LEN);
     char *macro_content = (char*)malloc(BUFFER);
 
     if(!line || !macro_name || !macro_content){
@@ -193,40 +188,15 @@ int order_as_file(FILE *input_file, FILE *output_file, Node** errors_list, HashT
  * @param heap_err flag of memory allocation failure.
  * @return code of success or failure.
  */
-int terminate(Node* errors_list, FILE* f_output, FILE* f_input, char* output_name, char* input_name, int heap_err){
+int terminate(FILE* f_output, FILE* f_input, char* output_name, char* input_name, int heap_err){
     fclose(f_input);
     fclose(f_output);
     remove(output_name);
     if(heap_err){
         printf("Failed to allocate memory, terminating.\n");
     }
-    /* TODO: IF REALLY FREES ERROR LIST */
-    free_space(3, output_name, input_name, errors_list);
+    free_space(2, output_name, input_name);
     return 1;
-}
-
-/**
- * Creates two strings with suffixes (.am and .as)
- * @param name of file
- * @param input string to create of input file
- * @param output string to create of output file
- */
-void file_names(const char* name, char** input, char** output) {
-    size_t name_size = strlen(name);
-
-    *input = (char*)malloc(name_size + 4);
-    *output = (char*)malloc(name_size + 4);
-
-    if (*input == NULL || *output == NULL) {
-        printf("[ERROR] Failed to allocate memory\n");
-        return;
-    }
-
-    strcpy(*input, name);
-    strcat(*input, ".as");
-
-    strcpy(*output, name);
-    strcat(*output, ".am");
 }
 
 /**
@@ -239,13 +209,20 @@ void file_names(const char* name, char** input, char** output) {
 int pre_assembler(char* name_of_file, HashTable* macros) {
     int result;
     char *input_file_name = NULL, *output_file_name = NULL;
+
     FILE *file_to_scan, *file_to_write;
-    Node* errors_list = NULL;
+    Node* errors = NULL;
     /* Get the name of the files */
-    file_names(name_of_file, &input_file_name, &output_file_name);
-    if (input_file_name == NULL || output_file_name == NULL) {
+    get_file(name_of_file, &input_file_name, ".as");
+    if (input_file_name == NULL){
         return 1;
     }
+    get_file(name_of_file, &output_file_name, ".am");
+    if(output_file_name == NULL) {
+        free(input_file_name);
+        return 1;
+    }
+
     /* Open the files */
     file_to_scan = fopen(input_file_name, "r+");
     if (file_to_scan == NULL) {
@@ -254,6 +231,8 @@ int pre_assembler(char* name_of_file, HashTable* macros) {
         free(output_file_name);
         return 1;
     }
+    printf("OPENED FILE %s\n", input_file_name);
+
     file_to_write = fopen(output_file_name, "w");
     if (file_to_write == NULL) {
         printf("[ERROR] Failed to open file %s\n", output_file_name);
@@ -262,20 +241,21 @@ int pre_assembler(char* name_of_file, HashTable* macros) {
         free(output_file_name);
         return 1;
     }
-
+    printf("OPENED FILE %s\n", output_file_name);
     /* Get the file converted */
-    result = order_as_file(file_to_scan, file_to_write, &errors_list, macros);
+
+    result = order_as_file(file_to_scan, file_to_write, &errors, macros);
 
     /* If encountered errors, let the user know */
-    if(result || errors_list != NULL){
-        print_list(errors_list);
-        return terminate(errors_list, file_to_write, file_to_scan, output_file_name, input_file_name, result);
+    if(result || errors != NULL){
+        print_list(errors);
+        return terminate(file_to_write, file_to_scan, output_file_name, input_file_name, result);
     }
 
     fclose(file_to_scan);
     fclose(file_to_write);
 
-    free_space(3, input_file_name, output_file_name, errors_list);
+    free_space(2, input_file_name, output_file_name);
 
     return 0;
 }

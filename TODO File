@@ -25,11 +25,11 @@ ERRORS:
 15) no label declaration X
 16) too many commas X
 17) illegal label declaration (missing : for example)  X
-18) illegal register name
+18) illegal register name (?)
 19) illegal number  X
 20) illegal string  X
 21) file too long  X
 23) illegal data declaration
 24) label's source is already defined differently
-25) label is also a macro
+25) label is also a macro  X
 26) missing space after :  X

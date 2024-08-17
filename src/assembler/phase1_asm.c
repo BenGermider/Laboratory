@@ -67,7 +67,7 @@ void declare_sentence(InstructionSentence *sen){
  */
 InstructionSentence* store_data(char* line, int line_num, Node** errors){
     InstructionSentence *sen;
-    char *label;
+    char *label = NULL;
     size_t data_size;
     char* text;
     size_t pre_label_len;
@@ -109,6 +109,13 @@ InstructionSentence* store_data(char* line, int line_num, Node** errors){
         sen->data = get_ascii(text, &data_size, line_num, errors);
         sen->size = data_size;
     }
+
+    if(sen->data == NULL){
+        free_space(2, sen, label);
+        /* Failed to allocate memory */
+        return NULL;
+    }
+
     return sen;
 }
 
@@ -327,7 +334,7 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
         label[pre_label_len] = '\0';
         /* TODO: SPACE AFTER COMMA */
 
-        if(is_valid_label(&label, 0) && !is_label_macro(macros, label, line, errors)){
+        if(!valid_label_decl(&label, macros) && !is_label_macro(macros, label, line, errors)){
             c_s->label = label;
         }
         command += pre_label_len + 1;
@@ -339,7 +346,6 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
     /* Store the rest of the data in the command-sentence */
     analyze_command(c_s, command, line, errors);
     if(c_s->operation == -1){
-        printf("GAY %s\n", txt);
         append(errors, line, "No such operation");
         return NULL;
     }
@@ -397,7 +403,7 @@ int first_pass(
     CommandSentence *c_s;
     char* copy;
 
-    while (fgets(line, BUFFER, src_file)) {
+    while (fgets(line, BUFFER, src_file) && IC + DC + FIRST_ADDRESS <= LAST_ADDRESS) {
         /* Read each line of the file */
 
         if(is_ignorable(line)){
@@ -419,6 +425,10 @@ int first_pass(
             /* Get line suspected as an instruction, and run the relevant function */
             if (store_or_src(get_word(strchr(line, '.'))) > 0) {
                 i_s = store_data(copy, L, errors);
+                if(i_s == NULL){
+                    free_space(2, copy, line);
+                    return 1;
+                }
                 if (i_s->label && !is_label_macro(macros, i_s->label, L, errors)) {
                     insert_label_table(labels, i_s->label, IC + FIRST_ADDRESS + DC);
                 }
@@ -473,7 +483,7 @@ int first_pass(
         L++;
         handled = 0;
     }
-
+    free_space(2, copy, line);
     if(!feof(src_file)){
         append(errors, 0, "Not enough space, file too long.");
     }

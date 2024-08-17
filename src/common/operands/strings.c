@@ -47,20 +47,12 @@ int* get_ascii(char* line, size_t *size, int line_num, Node** errors){
     }
 
     for (i = 1; i < strlen(line) - 1; i++) {
-        if (line[i] == '\"') {
-            /*TODO: CHECK IF ITS RIGHT */
-            printf("BAD STRING\n");
-            free(arr);
-            return NULL;
-        }
-
         arr[curr_size - 1] = (int)line[i];
         curr_size++;
 
         /* resize the array */
         temp = (int*)realloc(arr, curr_size * sizeof(int));
         if (temp == NULL) {
-            printf("BAD\n");
             free(arr);
             return NULL;
         }

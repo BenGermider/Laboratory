@@ -179,6 +179,22 @@ void freeHashTable(HashTable* ht) {
     free(ht);
 }
 
+void flushHashTable(HashTable* ht) {
+    size_t i;
+    for (i = 0; i < ht->size; i++) {
+        KeyVal *current = ht->table[i];
+        while (current != NULL) {
+            KeyVal *temp = current;
+            current = current->next;
+            free(temp->key);
+            free(temp->value);
+            free(temp);
+        }
+        ht->table[i] = NULL;
+    }
+    ht->count = 0;
+}
+
 /* TODO: FOR DEBUGGING, REMOVE */
 void printHashTable(HashTable* ht) {
     size_t i;

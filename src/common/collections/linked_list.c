@@ -137,3 +137,16 @@ void free_list(Node *head) {
         free(temp);
     }
 }
+
+void flush_list(Node **head) {
+    Node *temp;
+
+    while (*head != NULL) {
+        temp = *head;
+        *head = (*head)->next;
+        free(temp->data->text);  /* Free the duplicated string */
+        free(temp->data);        /* Free the data struct */
+        free(temp);              /* Free the node */
+    }
+    *head = NULL;  /* Set head to NULL after clearing the list */
+}
