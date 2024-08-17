@@ -330,8 +330,10 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
         if(is_valid_label(&label, 0) && !is_label_macro(macros, label, line, errors)){
             c_s->label = label;
         }
-
         command += pre_label_len + 1;
+        if(!isspace(*command)){
+            append(errors, line, "Missing space after label declaration.");
+        }
     }
 
     /* Store the rest of the data in the command-sentence */
@@ -361,10 +363,8 @@ int free_at_error(void* sentence, char* str1, char* str2){
 void update_line(char* label, int line, Node** externals, Node** entries){
     Node* test;
     if((test = get_node(*externals, label))){
-        printf("EXT\n");
         test->data->line = line;
     } else if((test = get_node(*entries, label))){
-        printf("ENT\n");
         test->data->line = line;
     }
 }
@@ -472,6 +472,10 @@ int first_pass(
         }
         L++;
         handled = 0;
+    }
+
+    if(!feof(src_file)){
+        append(errors, 0, "Not enough space, file too long.");
     }
 
     if(*errors != NULL){

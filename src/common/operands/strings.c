@@ -36,7 +36,7 @@ int is_legal_string(char* str){
 int* get_ascii(char* line, size_t *size, int line_num, Node** errors){
     int curr_size = 1, *arr, i, *temp;
     clear_side_blanks(&line, 0);
-    if(*line != '\"' || *(line + strlen(line) - 1) != '\"'){
+    if(is_legal_string(line)){
         append(errors, line_num, "Bad string format.");
         return NULL;
     }

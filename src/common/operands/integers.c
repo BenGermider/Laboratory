@@ -26,6 +26,7 @@ int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
     num_copy++;
     while(*(num_copy) != '\0'){
         if(!isdigit(*(num_copy))){
+            printf("[%c]\n", *num_copy);
             return 1;
         }
         (num_copy)++;

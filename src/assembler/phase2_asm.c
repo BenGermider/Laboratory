@@ -16,7 +16,7 @@
 int get_operand_type(char* operand, INT_BOUND bound){
     if(operand == NULL) {
         return -1;
-    } else if (*operand == '#' && is_num_legal(operand + 1, bound, NULL, 0)){
+    } else if (*operand == '#' && !is_num_legal(operand + 1, bound, NULL, 0)){
         return 0;
     } else if (is_reg(operand)) {
         return 3;
@@ -94,15 +94,21 @@ unsigned short int two_regs(char* reg1, char* reg2){
  * @param path source operand or destination operand
  * @return code of the operand
  */
-unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path){
+unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path, Node** errors, int line){
     Node* operand_node;
-    if(*operand == '#' && is_num_legal(operand + 1, COM_BOUND, NULL, 0)){ /* Integer */
+    int op_type = get_operand_type(operand, COM_BOUND);
+    if(op_type == 0) { /* Integer */
         return integer_word(operand);
-    } else if(exists(*externals, operand, 0)){ /* External label */
-        return 1;
-    } else if (exists(*labels, operand, 0)){ /* Not external label */
-        operand_node = get_node(*labels,operand);
-        return ((operand_node->data->line) << DESTINATION) | RELOCATABLE;
+    } else if(op_type == 1){
+        if(exists(*externals, operand, 0)){ /* External label */
+            return 1;
+        }
+        if (exists(*labels, operand, 0)){ /* Not external label */
+            operand_node = get_node(*labels,operand);
+            return ((operand_node->data->line) << DESTINATION) | RELOCATABLE;
+        }
+        append(errors, line, "Label is not declared.");
+        return 0;
     } else if(reg_arg(operand)){  /* Registers */
         if(path){
             return (get_reg(operand) << SRC_OP) | ABSOLUTE;
@@ -120,7 +126,7 @@ unsigned short int operand_as_code(char* operand, Node** labels, Node** external
  * @param labels database of labels of the code
  * @param externals database of extern labels of the code
  */
-void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, Node** labels, Node** externals){
+void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, Node** labels, Node** externals, Node** errors){
     int last_index;
     if(c_s->word_count == 1) {
         /* If no operands, then no need to handle */
@@ -133,11 +139,11 @@ void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, No
         return;
     } else {
         /* Save the destination operand in the machine code array */
-        (*machine_code)[last_index] = operand_as_code(c_s->dest, labels, externals, DESTINATION);
+        (*machine_code)[last_index] = operand_as_code(c_s->dest, labels, externals, DESTINATION, errors, c_s->pos);
     }
     if(c_s->src){
         /* If there is source operand, save it as well */
-        (*machine_code)[1] = operand_as_code(c_s->src, labels, externals, SOURCE);
+        (*machine_code)[1] = operand_as_code(c_s->src, labels, externals, SOURCE, errors, c_s->pos);
     }
 }
 
@@ -160,7 +166,7 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node**
     machine_code[0] = operation_as_num(c_s, errors);
 
     /* handle next words (operands) */
-    handle_operands(&machine_code, c_s, labels, externals);
+    handle_operands(&machine_code, c_s, labels, externals, errors);
     return machine_code;
 }
 
@@ -168,8 +174,7 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node**
  * Converts an instruction into a machine code, according to the amount of data.
  * @param i_s instruction to be converted into machine code.
  * @return array of words to be stored in the memory.
- */
-unsigned short int* get_instruction_code(InstructionSentence* i_s){
+ */unsigned short int* get_instruction_code(InstructionSentence* i_s){
     int i;
     unsigned short int* machine_code = (unsigned short int*)calloc(i_s->size, sizeof(unsigned short int));
     if (!machine_code) {
@@ -247,6 +252,7 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
         }
         current_line = (SenNode *) current_line->next;
     }
+    print_list(*errors);
     return machine_code;
 }
 

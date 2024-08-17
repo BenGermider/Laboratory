@@ -18,10 +18,10 @@ unsigned short int operation_as_num(CommandSentence*, Node**);
 unsigned short int two_regs(char*, char*);
 
 /* Converts a line of command into a number */
-unsigned short int operand_as_code(char*, Node**, Node**, OPERAND);
+unsigned short int operand_as_code(char*, Node**, Node**, OPERAND, Node**, int);
 
 /* Sets the value of the operands in the command */
-void handle_operands(unsigned short int**, CommandSentence*, Node**, Node**);
+void handle_operands(unsigned short int**, CommandSentence*, Node**, Node**, Node**);
 
 /* Convert all commands into a code */
 unsigned short int* get_command_code(CommandSentence*, Node**,  Node**, Node**, Node**);

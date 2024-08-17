@@ -12,9 +12,6 @@
 #include "../common/collections/sentence_list.h"
 #include "../common/collections/hash_table.h"
 
-/* Checks whether the label received is legal */
-int is_valid_label(char **label, int is_decl);
-
 /* Differentiate between the two types of instructions */
 int store_or_src(char *instruction);
 

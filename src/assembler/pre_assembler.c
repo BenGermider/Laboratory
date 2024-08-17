@@ -18,7 +18,7 @@
  */
 int is_valid(HashTable *ht, char* macro_line, char* macro_name){
     int i;
-    clear_side_blanks(&macro_line, 1);
+    clear_side_blanks(&macro_line, 0);
     if(strcmp(strtok(macro_line, " "), macro_line) != 0){
         /* Redundant characters in macro declaration */
         return 0;
@@ -28,10 +28,6 @@ int is_valid(HashTable *ht, char* macro_line, char* macro_name){
         return 0;
     }
     if(strlen(macro_line) > MAX_MACRO_NAME_LEN){
-        return 0;
-    }
-    if(get(ht, macro_line)){
-        /* Macro already exists */
         return 0;
     }
     /* Checking for forbidden macro names */
@@ -74,6 +70,7 @@ char* analyze(
 
     char* macro;
     char* macro_name_start;
+    char* extra_char;
     char *macro_line = (char*)malloc(strlen(line) + 1);
 
     if (macro_line == NULL) {
@@ -83,29 +80,41 @@ char* analyze(
 
     strcpy(macro_line, line);
     clear_side_blanks(&macro_line, 1);
-    if (strncmp(macro_line, MACRO_START, strlen(MACRO_START)) == 0) {
+    if ((extra_char = strstr(macro_line, MACRO_START))) {
+        if(extra_char - macro_line != 0){
+            append(errors, current_line, "Label declaration did not open properly.");
+        }
         /* Found a macro declaration */
-        macro_name_start = macro_line + strlen(MACRO_START);
-
+        macro_name_start = extra_char + strlen(MACRO_START);
         if (!is_valid(ht, macro_name_start, macro_name)) {
             /* Handle macro name declaration, alert if errors */
             if(append(errors, current_line, "Bad macro name")){
                 free(macro_line);
-                printf("got something bad");
                 return NULL;
             }
             free(macro_line);
             /* Macro is not part of .am file, return empty string to not write it to .am */
             return "";
         }
-
+        if(get(ht, macro_name)){
+            append(errors, current_line, "Macro already exists");
+        }
+        if(*(macro_line + strlen(macro_name)) != '\0'){
+            append(errors, current_line, "Label declaration did not open properly.");
+        }
         *in_macro = 1;
         free(macro_line);
         return "";
     }
 
-    else if (strncmp(macro_line, MACRO_END, strlen(MACRO_END)) == 0) {
+    else if ((extra_char = strstr(macro_line, MACRO_END))) {
         /* Found macro ending, add it into the macro database */
+        if(extra_char - macro_line != 0){
+            append(errors, current_line, "Label declaration did not close properly.");
+        }
+        if(*(macro_line + strlen(MACRO_END)) != '\0'){
+            append(errors, current_line, "Label declaration did not close properly.");
+        }
         insert(ht, macro_name, macro_content);
         *in_macro = 0;
         macro_name[0] = '\0';
