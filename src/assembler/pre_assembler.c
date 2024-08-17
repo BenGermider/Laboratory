@@ -82,7 +82,7 @@ char* analyze(
     }
 
     strcpy(macro_line, line);
-    clear_side_blanks(&macro_line, 1);
+    clear(&macro_line, 1);
     if (strncmp(macro_line, MACRO_START, strlen(MACRO_START)) == 0) {
         /* Found a macro declaration */
         macro_name_start = macro_line + strlen(MACRO_START);
@@ -227,10 +227,11 @@ void file_names(const char* name, char** input, char** output) {
  * @param macros database of macros
  * @return code of success or failure.
  */
-int pre_assembler(char* name_of_file, HashTable* macros, ) {
+int pre_assembler(char* name_of_file, HashTable* macros) {
     int result;
     char *input_file_name = NULL, *output_file_name = NULL;
     FILE *file_to_scan, *file_to_write;
+    Node* errors_list = NULL;
     /* Get the name of the files */
     file_names(name_of_file, &input_file_name, &output_file_name);
     if (input_file_name == NULL || output_file_name == NULL) {
