@@ -39,7 +39,6 @@ void free_all(
         free_list(errors);
     }
     freeSentenceList(code);
-    freeSentenceList(data);
     free(file_name);
 }
 
@@ -114,14 +113,15 @@ int main(int argc, char* argv[]) {
     for(i = 1; i < argc; i++){
         flush_list(&errors);
         flushHashTable(macros);
-
         printf("[MAIN PROCESS] Assembler works on %s\n", argv[i]);
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
-        if (pre_assembler(argv[i], macros)) {
+        if (pre_assembler(argv[i], macros, &errors)) {
+            printf("FAILED PRE\n");
             continue;
         }
         if (assembler(argv[i], macros, &errors)) {
+            printf("FAILED POST\n");
             continue;
         }
         printf("[MAIN PROCESS] %s has been assembled successfully.\n", argv[i]);

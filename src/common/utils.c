@@ -96,7 +96,6 @@ void free_space(int amount, ...) {
     va_end(args);
 }
 
-
 /**
  * Checks whether the line is ignorable, contains no data
  * @param line to check
@@ -111,12 +110,12 @@ int is_ignorable(char *line){
     /* makes a copy of the line to check */
     strcpy(copy, line);
     copy[strlen(line)] = '\0';
+    clear_side_blanks(&copy, 0);
+    /* if line is a comment or empty, it is ignorable */
     if(*copy == ';'){
         free(copy);
         return 1;
     }
-    clear_side_blanks(&copy, 0);
-    /* if line is a comment or empty, it is ignorable */
     if(*copy == '\0'){
         free(copy);
         return 1;
@@ -157,4 +156,5 @@ void get_file(const char* file_name, char** input_file, const char* suffix){
     }
     strcpy(*input_file, file_name);
     strcat(*input_file, suffix);
+
 }

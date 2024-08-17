@@ -17,6 +17,6 @@ int order_as_file(FILE*, FILE*, Node**, HashTable*);
 int terminate(FILE*, FILE*, char*, char*, int);
 
 /* Main pre-assembler function which exchanges macro into a code */
-int pre_assembler(char*, HashTable*);
+int pre_assembler(char*, HashTable*, Node**);
 
 #endif

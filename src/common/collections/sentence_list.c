@@ -89,6 +89,7 @@ void freeSentenceList(SentenceList* list) {
 
     list->head = NULL;
     list->size = 0;
+    free(list);
 }
 
 /* TODO: REMOVE ITS FOR DEBUGGING */

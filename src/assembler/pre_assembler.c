@@ -3,11 +3,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "../../include/assembler/pre_assembler.h"
-#include "../../include/common/collections/hash_table.h"
 #include "../../include/common/library.h"
 #include "../../include/common/utils.h"
 #include "../../include/common/consts.h"
-#include "../../include/common/collections/linked_list.h"
 
 /**
  * Check validity of macro name
@@ -105,7 +103,7 @@ char* analyze(
             /* Handle macro name declaration, alert if errors */
             if(append(errors, current_line, "Bad macro name")){
                 free(macro_line);
-                return NULL;
+                return "";
             }
             free(macro_line);
             /* Macro is not part of .am file, return empty string to not write it to .am */
@@ -138,6 +136,7 @@ char* analyze(
     return line;
 }
 
+
 /**
  * Reads the file, saves macros in macro DB, writes the .am file without macros and alert if any errors occurred
  * while declaring macros.
@@ -156,25 +155,26 @@ int order_as_file(FILE *input_file, FILE *output_file, Node** errors_list, HashT
     char *macro_content = (char*)malloc(BUFFER);
 
     if(!line || !macro_name || !macro_content){
-        /* Memory allocation error */
+         /*Memory allocation error*/
         free_space(3, line, macro_content, macro_name);
         return 1;
     }
 
     while (fgets(line, BUFFER, input_file)) {
-        /* Read from a file */
+         /*Read from a file */
         to_output = analyze(line, &in_macro, macros, macro_name, macro_content, errors_list, current_line);
         if (to_output == NULL) {
-            /* Encountered memory allocation error */
+             /*Encountered memory allocation error*/
             free_space(3, line, macro_name, macro_content);
             return 1;
         }
         if(to_output[0] != '\0'){
-            /* Lines of coding writing into the output file */
+             /*Lines of coding writing into the output file*/
             fprintf(output_file, "%s", to_output);
         }
         current_line++;
     }
+    free_space(3, line, macro_name, macro_content);
     return 0;
 }
 
@@ -206,12 +206,11 @@ int terminate(FILE* f_output, FILE* f_input, char* output_name, char* input_name
  * @param macros database of macros
  * @return code of success or failure.
  */
-int pre_assembler(char* name_of_file, HashTable* macros) {
-    int result;
+int pre_assembler(char* name_of_file, HashTable* macros, Node** errors) {
+    int result = 0;
     char *input_file_name = NULL, *output_file_name = NULL;
 
     FILE *file_to_scan, *file_to_write;
-    Node* errors = NULL;
     /* Get the name of the files */
     get_file(name_of_file, &input_file_name, ".as");
     if (input_file_name == NULL){
@@ -222,16 +221,14 @@ int pre_assembler(char* name_of_file, HashTable* macros) {
         free(input_file_name);
         return 1;
     }
-
     /* Open the files */
-    file_to_scan = fopen(input_file_name, "r+");
+    file_to_scan = fopen(input_file_name, "r");
     if (file_to_scan == NULL) {
         printf("[ERROR] Failed to open file %s\n", input_file_name);
         free(input_file_name);
         free(output_file_name);
         return 1;
     }
-    printf("OPENED FILE %s\n", input_file_name);
 
     file_to_write = fopen(output_file_name, "w");
     if (file_to_write == NULL) {
@@ -241,14 +238,11 @@ int pre_assembler(char* name_of_file, HashTable* macros) {
         free(output_file_name);
         return 1;
     }
-    printf("OPENED FILE %s\n", output_file_name);
     /* Get the file converted */
-
-    result = order_as_file(file_to_scan, file_to_write, &errors, macros);
-
+    result = order_as_file(file_to_scan, file_to_write, errors, macros);
     /* If encountered errors, let the user know */
-    if(result || errors != NULL){
-        print_list(errors);
+    if(result || *errors != NULL){
+        print_list(*errors);
         return terminate(file_to_write, file_to_scan, output_file_name, input_file_name, result);
     }
 

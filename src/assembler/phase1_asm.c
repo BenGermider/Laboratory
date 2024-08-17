@@ -84,12 +84,13 @@ InstructionSentence* store_data(char* line, int line_num, Node** errors){
     pre_label_len = strchr(line, '.') - line;
 
     if(pre_label_len > 0){
-        label = malloc(pre_label_len + 1);
+        label = (char*)malloc(pre_label_len + 1);
         if(!label){
             free(sen);
             return NULL;
         }
         strncpy(label, line, pre_label_len);
+        label[pre_label_len] = '\0';
         if(is_valid_label(&label, 1)){
             /* Is label, save it */
             sen->label = label;
@@ -346,6 +347,7 @@ CommandSentence *pull_command(char *command, int line, Node** errors, HashTable*
     /* Store the rest of the data in the command-sentence */
     analyze_command(c_s, command, line, errors);
     if(c_s->operation == -1){
+        printf("[%s]\n",command);
         append(errors, line, "No such operation");
         return NULL;
     }
@@ -482,6 +484,7 @@ int first_pass(
         }
         L++;
         handled = 0;
+        print_list(*errors);
     }
     free_space(2, copy, line);
     if(!feof(src_file)){
