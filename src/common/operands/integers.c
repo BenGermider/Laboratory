@@ -1,8 +1,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <math.h>
+
 #include "../../../include/common/operands/integers.h"
 #include "../../../include/common/utils.h"
 

@@ -15,32 +15,30 @@
 /* Differentiate between the two types of instructions */
 int store_or_src(char *instruction);
 
-/* Initializes an instruction */
-void declare_sentence(InstructionSentence *sen);
-
-/* Insert a label received into the label collection */
-int insert_label_table(Node **database, char *label, int lines);
+/* Checks if data instructions actually hold data */
+char* data_to_check(char*, int, int, Node**);
 
 /* Handle an instruction of data storing */
 InstructionSentence* store_data(char*, int, Node**);
 
-/* Handle an instruction of source declaration of a label */
-InstructionSentence* src_handling(char* line);
 
-/* Initializes a command */
-void generate_command(CommandSentence *c_s);
+/*Check whether argument received is a legal argument.*/
+int is_valid_arg(char*, Node**, int);
+
+/* Handle an instruction of source declaration of a label */
+InstructionSentence* src_handling(char*, Node**, int);
 
 /* Gets the number of operation given */
-void get_command(CommandSentence* c_s, char* command);
+void get_command(CommandSentence*, char*);
 
 /* Reads and analyzes args of given operation */
 void args(CommandSentence*, char*, int, Node**);
 
 /* Calculates how many words the line will store in the RAM */
-void word_count(CommandSentence* c_s);
+void calc_word_count(CommandSentence*);
 
 /* Searches if macro and label share names */
-int is_label_macro(hash_table* macros, char* label, int line, Node** errors);
+int is_label_macro(hash_table*, char*, int, Node**);
 
 /* Reads and analyzes the operation and arguments received in a line */
 void analyze_command(CommandSentence*, char*, int, Node**);
@@ -50,9 +48,5 @@ CommandSentence *pull_command(char*, int, Node**, hash_table*);
 
 /* Reads the file and saves crucial data towards conversion to machine code */
 int first_pass(FILE*, Node**, Node**, Node**, Node**, SentenceList*, SentenceList*, hash_table*);
-
-/* Initiates lists of code and data */
-void declare_lists(SentenceList*, SentenceList*);
-
 
 #endif /* LABORATORY_PHASE1_ASM_H */

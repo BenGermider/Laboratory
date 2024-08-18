@@ -4,15 +4,16 @@
 #include "../collections/linked_list.h"
 #include "../collections/hash_table.h"
 
-/* Checks whether label declaration is valid */
-int is_valid_label(char **label, int is_decl);
+/* Checks if label includes only legit characters */
+int is_valid_label(char**, int);
 
-int valid_label_decl(char**, hash_table*);
+/* Checks if label declared according to the rules */
+int label_valid_name(char**, Node**, int);
 
 /* Insert a label into the labels table */
-int insert_label_table(Node **database, char *label, int lines);
+int insert_label_table(Node**, char*, int);
 
 /* Insert a label into a database of labels from a specific source */
-int insert_source_label(Node** list, char* label, int line);
+int insert_source_label(Node**, char*, int);
 
 #endif /* LABORATORY_LABELS_H */

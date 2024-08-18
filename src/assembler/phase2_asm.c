@@ -21,6 +21,13 @@ int get_operand_type(char* operand, INT_BOUND bound){
     }
 }
 
+/**
+ * Checks if the operation can receive the operand
+ * @param c_s command currently reading
+ * @param errors database of errors
+ * @param src_type type of operand for source
+ * @param dest_type type of destination operand
+ */
 void is_valid_operand(CommandSentence *c_s, Node** errors, int src_type, int dest_type){
     int i, is_valid = 0;
 
@@ -45,6 +52,7 @@ void is_valid_operand(CommandSentence *c_s, Node** errors, int src_type, int des
 /**
  * Converts a command with operation to an integer
  * @param c_s command holding opcode and arguments
+ * @param errors database of errors
  * @return the command as short uint
  */
 unsigned short int operation_as_num(CommandSentence* c_s, Node** errors){
@@ -87,6 +95,8 @@ unsigned short int two_regs(char* reg1, char* reg2){
  * @param labels database of labels
  * @param externals database of external labels
  * @param path source operand or destination operand
+ * @param errors database of errors
+ * @param line line currently converting
  * @return code of the operand
  */
 unsigned short int operand_as_code(char* operand, Node** labels, Node** externals, OPERAND path, Node** errors, int line){
@@ -184,10 +194,17 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node**
     return machine_code;
 }
 
+/**
+ * Updates extern table to hold line the ext label is called
+ * @param externals database of externals
+ * @param command holding ext label
+ * @param line number of line
+ */
 void update_extern(Node* externals, CommandSentence* command, int line){
     exists(externals, command->src, 1, line);
     exists(externals, command->dest, 1, line);
  }
+
 /**
  * Main conversion code. Runs over the commands and instructions and converts them into integers representing
  * the code according to the given protocol.
@@ -255,6 +272,7 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
  * @param labels database of labels of the code
  * @param entries database of entry labels of the code
  * @param externals database of extern labels of the code
+ * @param errors database of errors of the code
  * @param code commands of the assembly file
  * @param data data to store of the assembly file
  * @return code of success or failure

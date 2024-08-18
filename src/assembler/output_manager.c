@@ -11,33 +11,30 @@
  * @param num code represented as an int to be converted.
  * @return code converted into a string.
  */
-char* short_to_5_digit_octal(unsigned short int num) {
-    char* result;
+char* convert_octal_string(unsigned short int num) {
+    char* octal;
     int i;
-    unsigned short int abs_num;
+    unsigned short int pos_num;
 
     /* Get memory for the code */
-    result = (char*)malloc(6 * sizeof(char));
-    if (result == NULL) {
+    octal = (char*)malloc(6 * sizeof(char));
+    if (octal == NULL) {
         return NULL;
     }
 
     if (num < 0) {
-        /* Handle negative numbers received TODO: CHECK IF RELEVANT*/
-        abs_num = (unsigned short int)(num + 65536);
+        /* Handle negative numbers received */
+        pos_num = (unsigned short int)(num + 0xFFF);
     } else {
-        abs_num = (unsigned short int)num;
+        pos_num = (unsigned short int)num;
     }
-
     /* Adds for the string each digit as octal into the string */
     for (i = 4; i >= 0; i--) {
-        result[i] = (abs_num % 8) + '0';
-        abs_num = abs_num / 8;
+        octal[i] = (pos_num % 8) + '0';
+        pos_num = pos_num / 8;
     }
-
-    result[5] = '\0';
-
-    return result;
+    octal[5] = '\0';
+    return octal;
 }
 
 /**
@@ -66,7 +63,12 @@ int write_obj_file(const char* file_name, unsigned short int* code, int IC, int 
     fprintf(ob, "  %d %d  \n", IC, DC);
     for(i = 0; i < DC + IC; i++){
     /* Adds each word as a code into the .ob file*/
-        octal = short_to_5_digit_octal(code[i]);
+        octal = convert_octal_string(code[i]);
+        if(octal == NULL){
+            free(obj_file);
+            fclose(ob);
+            return 1;
+        }
         fprintf(ob, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
         free(octal);
     }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../../include/common/collections/hash_table.h"
+#include "../../../include/common/utils.h"
 
 /**
  * Returns the hash code for the key according to hash formula.
@@ -75,41 +76,39 @@ void resize_hash_table(hash_table* h_table, size_t new_size) {
  */
 void insert(hash_table* h_table, char* key, char* value) {
     unsigned int index;
-    key_val* newPair;
+    key_val* new_key_val;
     key_val* current;
 
-    /* TODO: CHECK IF NECESSARY */
-    if (h_table->count >= h_table->size * 0.75) {
-        /* Resize the hash table */
+    if (h_table->count >= h_table->size / 2) {
+        /* Resize the hash table to avoid possible dump */
         resize_hash_table(h_table, h_table->size * 2);
     }
 
     index = hash(key, h_table->size); /* Calc hash for key */
-    newPair = (key_val*)malloc(sizeof(key_val));
-    if (newPair == NULL) {
+    new_key_val = (key_val*)malloc(sizeof(key_val));
+    if (new_key_val == NULL) {
         return;
     }
     /* Save key val pair */
-    newPair->key = (char*)malloc(strlen(key) + 1);
-    if (newPair->key == NULL) {
-        free(newPair);
+    new_key_val->key = (char*)malloc(strlen(key) + 1);
+    if (new_key_val->key == NULL) {
+        free(new_key_val);
         return;
     }
-    strcpy(newPair->key, key);
+    strcpy(new_key_val->key, key);
 
-    newPair->value = (char*)malloc(strlen(value) + 1);
-    if (newPair->value == NULL) {
-        free(newPair->key);
-        free(newPair);
+    new_key_val->value = (char*)malloc(strlen(value) + 1);
+    if (new_key_val->value == NULL) {
+        free_space(2, new_key_val->key, new_key_val);
         return;
     }
-    strcpy(newPair->value, value);
+    strcpy(new_key_val->value, value);
 
-    newPair->next = NULL;
+    new_key_val->next = NULL;
 
     /* place new key-val in the hash-table */
     if (h_table->table[index] == NULL) {
-        h_table->table[index] = newPair;
+        h_table->table[index] = new_key_val;
         h_table->count++;
     } else {
         current = h_table->table[index];
@@ -120,15 +119,11 @@ void insert(hash_table* h_table, char* key, char* value) {
                 current->value = (char*)malloc(strlen(value) + 1);
                 if (current->value == NULL) {
                     /* Handle allocation failure */
-                    free(newPair->key);
-                    free(newPair->value);
-                    free(newPair);
+                    free_space(3, new_key_val->key, new_key_val->value, new_key_val);
                     return;
                 }
                 strcpy(current->value, value);
-                free(newPair->key);
-                free(newPair->value);
-                free(newPair);
+                free_space(3, new_key_val->key, new_key_val->value, new_key_val);
                 return;
             }
             if (current->next == NULL) {
@@ -136,7 +131,7 @@ void insert(hash_table* h_table, char* key, char* value) {
             }
             current = current->next;
         }
-        current->next =  newPair;
+        current->next =  new_key_val;
         h_table->count++;
     }
 }
@@ -165,18 +160,16 @@ char* get(hash_table* h_table,  char* key) {
  */
 void free_hash_table(hash_table* h_table) {
     size_t i;
+    key_val* current, *temp;
     for (i = 0; i < h_table->size; i++) {
-        key_val* current = h_table->table[i];
+        current = h_table->table[i];
         while (current != NULL) {
-            key_val* temp = current;
+            temp = current;
             current = current->next;
-            free(temp->key);
-            free(temp->value);
-            free(temp);
+            free_space(3, temp->key, temp->value, temp);
         }
     }
-    free(h_table->table);
-    free(h_table);
+    free_space(2,h_table->table, h_table);
 }
 
 void flush_hash_table(hash_table* h_table) {
@@ -186,37 +179,9 @@ void flush_hash_table(hash_table* h_table) {
         while (current != NULL) {
             key_val *temp = current;
             current = current->next;
-            free(temp->key);
-            free(temp->value);
-            free(temp);
+            free_space(3, temp->key, temp->value, temp);
         }
         h_table->table[i] = NULL;
     }
     h_table->count = 0;
-}
-
-/* TODO: FOR DEBUGGING, REMOVE */
-void print_hash_table(hash_table* h_table) {
-    size_t i;
-    if (h_table == NULL) {
-        printf("Hash table is NULL\n");
-        return;
-    }
-
-    printf("Hash Table Contents:\n");
-    printf("--------------------\n");
-    for (i = 0; i < h_table->size; i++) {
-        key_val* current = h_table->table[i];
-        if (current != NULL) {
-            printf("Bucket %d:\n", (int)i);
-            while (current != NULL) {
-                printf("  Key: %s, Value: %s\n", current->key, current->value);
-                current = current->next;
-            }
-        }
-    }
-    printf("--------------------\n");
-    printf("Total items: %d\n", (int) h_table->count);
-    printf("Table size: %d\n", (int) h_table->size);
-    printf("Load factor: %.2f\n", (float)h_table->count / h_table->size);
 }

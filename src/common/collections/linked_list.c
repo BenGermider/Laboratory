@@ -138,6 +138,10 @@ void free_list(Node *head) {
     }
 }
 
+/**
+ * Clears the list
+ * @param head of the list to clear
+ */
 void flush_list(Node **head) {
     Node *temp;
 

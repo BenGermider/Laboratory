@@ -14,6 +14,13 @@ int get_operand_type(char*, INT_BOUND);
 /* Converts a command into a number */
 unsigned short int operation_as_num(CommandSentence*, Node**);
 
+
+/* Updates extern table to hold line the ext label is called*/
+void update_extern(Node*, CommandSentence*, int);
+
+/* Checks whether operands received for operation are valid */
+void is_valid_operand(CommandSentence*, Node**, int, int);
+
 /* Gets code for storing two registers in one word. */
 unsigned short int two_regs(char*, char*);
 
@@ -43,12 +50,12 @@ unsigned short int* calc_code(
 /* Converts data received from first pass into desired output files */
 int second_pass(
         const char*,
-        Node** labels,
-        Node** entries,
-        Node** externals,
-        Node** errors,
-        SentenceList* code,
-        SentenceList* data
+        Node**,
+        Node**,
+        Node**,
+        Node**,
+        SentenceList*,
+        SentenceList*
 );
 
 #endif /* LABORATORY_PHASE2_ASM_H */

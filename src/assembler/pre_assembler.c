@@ -15,7 +15,7 @@
  * @param macro_name pointer for the macro name to be stored
  * @return if valid macro name.
  */
-int is_valid(hash_table *h_table, char* macro_line, char* macro_name){
+int is_valid(char* macro_line, char* macro_name){
     int i;
     clear_side_blanks(&macro_line, 0);
     if(strcmp(strtok(macro_line, " "), macro_line) != 0){
@@ -30,7 +30,7 @@ int is_valid(hash_table *h_table, char* macro_line, char* macro_name){
         return 0;
     }
     /* Checking for forbidden macro names */
-    for(i = 0; i < 16; i++){
+    for(i = 0; i < OP_COUNT; i++){
         if(strcmp(macro_line, OPERATIONS[i].name) == 0){
             return 0;
         }
@@ -101,7 +101,6 @@ char* analyze(
         return "";
     } else if ((extra_char = strstr(macro_line, MACRO_START))) {
         if(extra_char - macro_line != 0){
-            printf("here, %s\n", macro_line);
             append(errors, current_line, "Label declaration did not open properly.");
         }
         /* Found a macro declaration */
@@ -112,7 +111,7 @@ char* analyze(
             return "";
         }
         clear_side_blanks(&macro_name_start, 0);
-        if (!is_valid(h_table, macro_name_start, macro_name)) {
+        if (!is_valid(macro_name_start, macro_name)) {
             /* Handle macro name declaration, alert if errors */
             if(append(errors, current_line, "Bad macro name")){
                 free(macro_line);
@@ -126,7 +125,6 @@ char* analyze(
             append(errors, current_line, "Macro already exists");
         }
         if(*(macro_name_start + strlen(macro_name)) != '\0'){
-            printf("alla, %s\n", macro_line);
             append(errors, current_line, "Label declaration did not open properly.");
         }
         *in_macro = 1;

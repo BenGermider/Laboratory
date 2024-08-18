@@ -22,7 +22,7 @@ int store_or_src(char *instruction){
             return 1;
         }
     }
-    for(i = 2; i < 4; i++){
+    for(i = 2; i < INST_COUNT; i++){
         if(strcmp(instruction, INSTRUCTIONS[i].name) == 0){
             return -1;
         }
@@ -31,7 +31,14 @@ int store_or_src(char *instruction){
 }
 
 
-
+/**
+ * Checks if data instructions actually hold data.
+ * @param data line of instruction
+ * @param line number of line
+ * @param type of instruction
+ * @param errors database of errors
+ * @return the data it holds
+ */
 char* data_to_check(char* data, int line, int type, Node** errors){
     char* to_convert;
     to_convert = strstr(data, INSTRUCTIONS[type].name) + strlen(INSTRUCTIONS[type].name);
@@ -73,7 +80,7 @@ InstructionSentence* store_data(char* line, int line_num, Node** errors){
         }
         strncpy(label, line, pre_label_len);
         label[pre_label_len] = '\0';
-        if(is_valid_label(&label, 1)){
+        if(is_valid_label(&label, 1) && label_valid_name(&label, errors, line_num)){
             /* Is label, save it */
             sen->label = label;
         } else {
@@ -111,7 +118,7 @@ InstructionSentence* store_data(char* line, int line_num, Node** errors){
  * @param line instruction as string
  * @return
  */
-InstructionSentence* src_handling(char* line){
+InstructionSentence* src_handling(char* line, Node** errors, int current_line){
     InstructionSentence* i_s;
     char* label;
     i_s = (InstructionSentence*) malloc(sizeof(InstructionSentence));
@@ -124,12 +131,12 @@ InstructionSentence* src_handling(char* line){
     /* Get the relevant source declaration and store the label */
     if(strcmp(get_word(strchr(line, '.')), INSTRUCTIONS[2].name) == 0){
         label = strstr(line, INSTRUCTIONS[2].name) + strlen(INSTRUCTIONS[2].name);
-        if(is_valid_label(&label, 0)) {
+        if(is_valid_label(&label, 0) && label_valid_name(&label, errors, current_line)) {
             i_s->label = label;
         }
     } else {
         label = strstr(line, INSTRUCTIONS[3].name) + strlen(INSTRUCTIONS[3].name);
-        if(is_valid_label(&label, 0)){
+        if(is_valid_label(&label, 0) && label_valid_name(&label, errors, current_line)){
             i_s->label = label;
             i_s->src = 1;
         }
@@ -146,7 +153,7 @@ InstructionSentence* src_handling(char* line){
 void get_command(CommandSentence* c_s, char* command){
     int i;
     clear_side_blanks(&command, 1);
-    for(i = 0; i < 16 ; i++){
+    for(i = 0; i < OP_COUNT ; i++){
         if(strcmp(get_word(command), OPERATIONS[i].name) == 0){
             c_s->operation = i;
             return;
@@ -231,7 +238,7 @@ void args(CommandSentence* c_s, char* command, int line, Node** errors){
  * Calculates the number of words in storage the current command will take.
  * @param c_s command checked how many words it takes.
  */
-void word_count(CommandSentence* c_s){
+void calc_word_count(CommandSentence* c_s){
     if(OPERATIONS[c_s->operation].arg_count == 0){
         c_s->word_count = 1;
     } else if(OPERATIONS[c_s->operation].arg_count == 1){
@@ -259,7 +266,7 @@ void analyze_command(CommandSentence* c_s, char* command, int line, Node** error
          strstr(command, OPERATIONS[c_s->operation].name) + strlen(OPERATIONS[c_s->operation].name),
          line,
          errors);
-    word_count(c_s);
+    calc_word_count(c_s);
 }
 
 /**
@@ -308,7 +315,7 @@ CommandSentence *pull_command(char *command, int line, Node** errors, hash_table
         strncpy(label, command, pre_label_len);
         label[pre_label_len] = '\0';
 
-        if(!valid_label_decl(&label, macros) && !is_label_macro(macros, label, line, errors)){
+        if(label_valid_name(&label, errors, line) && !is_label_macro(macros, label, line, errors)){
             c_s->label = label;
         }
         command += pre_label_len + 1;
@@ -321,24 +328,11 @@ CommandSentence *pull_command(char *command, int line, Node** errors, hash_table
     analyze_command(c_s, command, line, errors);
     if(c_s->operation == -1){
         append(errors, line, "No such operation");
-        return NULL;
     }
 
     return c_s;
 }
 
-/**
- * Frees generically two strings and an object
- * @param sentence object to free
- * @param str1 string to free
- * @param str2 string to free
- * @return 1 as a failure code.
- */
-int free_at_error(void* sentence, char* str1, char* str2){
-    free(sentence);
-    free_space(2, str1, str2);
-    return 1;
-}
 
 /**
  * Main function of the first pass
@@ -362,7 +356,7 @@ int first_pass(
         SentenceList* data,
         hash_table* macros
         ){
-    int IC = 0, DC = 0, L = 0, handled = 0;
+    int IC = 0, DC = 0, current_line = 0, handled = 0;
     InstructionSentence *i_s;
     CommandSentence *c_s;
     char* copy;
@@ -373,13 +367,13 @@ int first_pass(
 
     while (fgets(line, BUFFER, src_file) && IC + DC + FIRST_ADDRESS <= LAST_ADDRESS) {
         /* Read each line of the file */
-        L++;
+        current_line++;
         if(is_ignorable(line)){
             continue;
         }
 
         if (strlen(line) > MAX_LINE_LEN) {
-            append(errors, L, "Line too long");
+            append(errors, current_line, "Line too long");
             continue;
         }
         line[strlen(line)] = '\0';
@@ -395,45 +389,45 @@ int first_pass(
         if(strchr(line, '.')) {
             /* Get line suspected as an instruction, and run the relevant function */
             if (store_or_src(get_word(strchr(line, '.'))) > 0) {
-                i_s = store_data(copy, L, errors);
+                i_s = store_data(copy, current_line, errors);
                 if(i_s == NULL){
                     free_space(2, copy, line);
                     return 1;
                 }
-                if (i_s->label && !is_label_macro(macros, i_s->label, L, errors)) {
+                if (i_s->label && !is_label_macro(macros, i_s->label, current_line, errors)) {
                     if(exists(*externals, i_s->label, 0, 0)){
-                        append(errors, L, "Cannot declare extern label here.");
+                        append(errors, current_line, "Cannot declare extern label here.");
                     }
                     insert_label_table(labels, i_s->label, IC + FIRST_ADDRESS + DC);
                 }
                 DC += i_s->size;
-                i_s->pos = L;
+                i_s->pos = current_line;
                 /* save the data in the data storage */
                 if(add_code(data, i_s, INSTRUCTION)){
                     return free_at_error((void*)i_s, copy, line);
                 }
                 handled = 1;
             } else if (store_or_src(get_word(strchr(line, '.'))) < 0) {
-                i_s = src_handling(copy);
+                i_s = src_handling(copy, errors, current_line);
                 if (i_s == NULL) {
                     free_space(2, copy, line);
                     return 1;
                 } else if (i_s->label == NULL){
-                    append(errors, L, "Bad label declaration.");
+                    append(errors, current_line, "Bad label declaration.");
                     free(i_s);
                     continue;
                 }
                 /* get the source of the label and store it in the relevant database */
-                if (i_s->src == 0 && !is_label_macro(macros, i_s->label, L, errors)) {
+                if (i_s->src == 0 && !is_label_macro(macros, i_s->label, current_line, errors)) {
                     if(exists(*externals, i_s->label, 0, 0)){
-                        append(errors, L, "Label already declared as extern");
+                        append(errors, current_line, "Label already declared as extern");
                     }
                     if(insert_source_label(entries, i_s->label, 0)){
                         return free_at_error((void*)i_s, copy, line);
                     }
-                } else if (i_s->src == 1 && !is_label_macro(macros, i_s->label, L, errors)) {
-                    if(exists(*externals, i_s->label, 0, 0)){
-                        append(errors, L, "Label already declared as entry");
+                } else if (i_s->src == 1 && !is_label_macro(macros, i_s->label, current_line, errors)) {
+                    if(exists(*entries, i_s->label, 0, 0)){
+                        append(errors, current_line, "Label already declared as entry");
                     }
                     if(insert_source_label(externals, i_s->label, 0)){
                         return free_at_error((void*)i_s, copy, line);
@@ -444,16 +438,16 @@ int first_pass(
         }
         if (!handled){
             /* Get the command, and store the label and the command in the database */
-            c_s = pull_command(copy, L, errors, macros);
+            c_s = pull_command(copy, current_line, errors, macros);
             if(c_s != NULL){
-                if(c_s->label != NULL && !is_label_macro(macros, c_s->label, L, errors)){
+                if(c_s->label != NULL && !is_label_macro(macros, c_s->label, current_line, errors)){
                     if(exists(*externals, c_s->label, 0, 0)){
-                        append(errors, L, "Cannot declare extern label here.");
+                        append(errors, current_line, "Cannot declare extern label here.");
                     }
                     insert_label_table(labels, c_s->label, IC + FIRST_ADDRESS);
                 }
                 IC += c_s->word_count;
-                c_s->pos = L;
+                c_s->pos = current_line;
                 if(add_code(code, c_s, COMMAND)){
                     return free_at_error((void*)c_s, line, copy);
                 }

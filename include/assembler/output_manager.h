@@ -9,7 +9,7 @@
 #include "../../include/common/utils.h"
 
 /* Converts a number into a 5-digit padded octal number */
-char* short_to_5_digit_octal(unsigned short int num);
+char* convert_octal_string(unsigned short int num);
 
 /* Writes a .ob file out of the assembly code received */
 int write_obj_file(const char* file_name, unsigned short int* code, int IC, int DC);

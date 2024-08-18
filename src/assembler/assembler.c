@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "../../include/assembler/pre_assembler.h"
+#include "../../include/common/init.h"
 #include "../../include/assembler/phase1_asm.h"
 #include "../../include/assembler/phase2_asm.h"
 

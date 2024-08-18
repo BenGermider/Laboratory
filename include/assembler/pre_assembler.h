@@ -5,7 +5,7 @@
 #include "../common/collections/linked_list.h"
 
 /* Checks whether macro name declaration is valid */
-int is_valid(hash_table*, char*, char*);
+int is_valid(char*, char*);
 
 /* Searches for macro content in the file and saves it in the collection of macros. */
 char* analyze(char*, int*, hash_table*, char*, char*, Node**, int);

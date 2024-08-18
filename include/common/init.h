@@ -3,22 +3,13 @@
 
 #include "collections/sentence_list.h"
 
-/**
- * Initializes an instruction
- * @param sen instruction to initialize
- */
+ /*Initializes an instruction*/
 void declare_sentence(InstructionSentence*);
-/**
- * Initializes a command object
- * @param c_s command to initialize.
- */
+
+/*Initializes a command object*/
 void generate_command(CommandSentence*);
 
-/**
- * Initializes lists
- * @param code list holds commands
- * @param data list holds instructions
- */
+/*Initializes lists*/
 void declare_lists(SentenceList*, SentenceList*);
 
 #endif /* LABORATORY_INIT_H */

@@ -5,6 +5,20 @@
 #include <stdlib.h>
 #include "../../include/common/utils.h"
 
+
+/**
+ * Frees generically two strings and an object
+ * @param sentence object to free
+ * @param str1 string to free
+ * @param str2 string to free
+ * @return 1 as a failure code.
+ */
+int free_at_error(void* sentence, char* str1, char* str2){
+    free(sentence);
+    free_space(2, str1, str2);
+    return 1;
+}
+
 /**
  * Remove all blanks from the side, optionally including newline
  * @param line to clear the edges
@@ -88,7 +102,6 @@ void free_space(int amount, ...) {
             free(ptr);
         }
     }
-
     va_end(args);
 }
 
