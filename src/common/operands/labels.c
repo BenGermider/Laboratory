@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <stdio.h>
 #include "../../../include/common/utils.h"
 #include "../../../include/common/operands/labels.h"
 #include "../../../include/common/operands/registers.h"
@@ -31,7 +30,7 @@ int is_valid_label(char **label, int is_decl) {
     return 0;
 }
 
-int valid_label_decl(char** label, HashTable *macros){
+int valid_label_decl(char** label, hash_table *macros){
     int i;
     if(!is_valid_label(label, 1)){
         return 0;
@@ -63,7 +62,7 @@ int valid_label_decl(char** label, HashTable *macros){
  * @return code of success or failure
  */
 int insert_label_table(Node **database, char *label, int lines){
-    if(!exists(*database, label, 0)){
+    if(!exists(*database, label, 0, 0)){
         return append(database, lines, label);
     } else {
         return -1;
@@ -80,4 +79,3 @@ int insert_label_table(Node **database, char *label, int lines){
 int insert_source_label(Node** list, char* label, int line){
     return append(list, line, label);
 }
-

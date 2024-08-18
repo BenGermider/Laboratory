@@ -47,28 +47,32 @@ char* short_to_5_digit_octal(unsigned short int num) {
  * @param IC number of words in RAM the code stored.
  * @param DC amount of data stored in RAM.
  */
-void write_obj_file(const char* file_name, unsigned short int* code, int IC, int DC){
+int write_obj_file(const char* file_name, unsigned short int* code, int IC, int DC){
     char* obj_file, *octal;
     int i;
-    FILE* f;
+    FILE* ob;
 
     /* Get the name of the file with the suffix and open it if possible */
-    get_file(file_name, &obj_file, ".ob");
-    f = fopen(obj_file, "w");
-    if(f == NULL){
+    if(get_file(file_name, &obj_file, ".ob")){
+        return 1;
+    }
+
+    ob = fopen(obj_file, "w");
+    if(ob == NULL){
         printf("FAILED TO OPEN FILE.\n");
-        return;
+        return 1;
     }
     /* Prints the title into the file according to the protocol */
-    fprintf(f, "  %d %d  \n", IC, DC);
+    fprintf(ob, "  %d %d  \n", IC, DC);
     for(i = 0; i < DC + IC; i++){
     /* Adds each word as a code into the .ob file*/
         octal = short_to_5_digit_octal(code[i]);
-        fprintf(f, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
+        fprintf(ob, "%04d\t%s\n", FIRST_ADDRESS + i, octal);
         free(octal);
     }
     free(obj_file);
-    fclose(f);
+    fclose(ob);
+    return 0;
 }
 
 /**
@@ -77,21 +81,26 @@ void write_obj_file(const char* file_name, unsigned short int* code, int IC, int
  * @param labels all labels of the code
  * @param entries labels declared as .entry
  */
-void write_entry_file(const char* file_name, Node** labels, Node** entries){
+int write_entry_file(const char* file_name, Node** labels, Node** entries){
     char* entry_file;
     Node* label_node, *entry;
-    FILE* f;
+    FILE* ent;
     /* Get the name of the file with the suffix and open it */
-    get_file(file_name, &entry_file, ".ent");
+    if(get_file(file_name, &entry_file, ".ent")){
+        return 1;
+    }
+
     entry = *entries;
     if(entry == NULL){
         /* stop if no entry labels */
-        return;
+        free(entry_file);
+        return 0;
     }
-     f = fopen(entry_file, "w");
-    if(!f){
+    ent = fopen(entry_file, "w");
+    if(!ent){
+        free(entry_file);
         printf("FAILED TO OPEN FILE\n");
-        return;
+        return 1;
     }
     /* Put in the .entry file every label declared as .entry and where it appears in code */
     while(entry != NULL){
@@ -99,11 +108,12 @@ void write_entry_file(const char* file_name, Node** labels, Node** entries){
         if(label_node != NULL){
             entry->data->line = label_node->data->line;
         }
-        fprintf(f, "%s %04d\n", entry->data->text, entry->data->line);
+        fprintf(ent, "%s %04d\n", entry->data->text, entry->data->line);
         entry = entry->next;
     }
     free(entry_file);
-    fclose(f);
+    fclose(ent);
+    return 0;
 }
 
 /**
@@ -111,31 +121,37 @@ void write_entry_file(const char* file_name, Node** labels, Node** entries){
  * @param file_name file without the suffix of .ext
  * @param ext_file database holding the extern labels
  */
-void write_extern_file(const char* file_name, Node** ext_file){
+int write_extern_file(const char* file_name, Node** ext_file){
     char* ext_name;
     Node* ext_label;
-    FILE* f;
+    FILE* ext;
 
-    get_file(file_name, &ext_name, ".ext");
+    if(get_file(file_name, &ext_name, ".ext")){
+        return 1;
+    }
+
     ext_label = *ext_file;
     if(ext_label == NULL){
         /* stop if no extern labels */
-        return;
+        free(ext_name);
+        return 0;
     }
 
     /* Get the name of the file with the suffix and open it */
-    f = fopen(ext_name, "w");
-    if(!f){
+    ext = fopen(ext_name, "w");
+    if(!ext){
+        free(ext_name);
         printf("FAILED TO OPEN FILE\n");
-        return;
+        return 1;
     }
 
     while(ext_label != NULL){
         /* Write the ext labels in the file */
-        fprintf(f, "%s %04d\n", ext_label->data->text, ext_label->data->line);
+        fprintf(ext, "%s %04d\n", ext_label->data->text, ext_label->data->line);
         ext_label = ext_label->next;
     }
 
     free(ext_name);
-    fclose(f);
+    fclose(ext);
+    return 0;
 }

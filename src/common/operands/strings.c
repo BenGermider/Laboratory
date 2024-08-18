@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "../../../include/common/operands/strings.h"
 #include "../../../include/common/utils.h"
@@ -35,6 +34,7 @@ int is_legal_string(char* str){
  */
 int* get_ascii(char* line, size_t *size, int line_num, Node** errors){
     int curr_size = 1, *arr, i, *temp;
+    if(line == NULL){ return NULL; }
     clear_side_blanks(&line, 0);
     if(is_legal_string(line)){
         append(errors, line_num, "Bad string format.");

@@ -40,16 +40,16 @@ void args(CommandSentence*, char*, int, Node**);
 void word_count(CommandSentence* c_s);
 
 /* Searches if macro and label share names */
-int is_label_macro(HashTable* macros, char* label, int line, Node** errors);
+int is_label_macro(hash_table* macros, char* label, int line, Node** errors);
 
 /* Reads and analyzes the operation and arguments received in a line */
 void analyze_command(CommandSentence*, char*, int, Node**);
 
 /* Reads all information from a .am file */
-CommandSentence *pull_command(char*, int, Node**, HashTable*);
+CommandSentence *pull_command(char*, int, Node**, hash_table*);
 
 /* Reads the file and saves crucial data towards conversion to machine code */
-int first_pass(FILE*, Node**, Node**, Node**, Node**, SentenceList*, SentenceList*, HashTable*);
+int first_pass(FILE*, Node**, Node**, Node**, Node**, SentenceList*, SentenceList*, hash_table*);
 
 /* Initiates lists of code and data */
 void declare_lists(SentenceList*, SentenceList*);

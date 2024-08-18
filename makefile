@@ -42,4 +42,4 @@ clear:
 	find . -name "*.ob" -type f -delete
 	find . -name "*.ent" -type f -delete
 	find . -name "*.ext" -type f -delete
-	rm -f assembler
+	rm assembler

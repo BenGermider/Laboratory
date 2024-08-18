@@ -6,10 +6,6 @@
 #include "../../include/common/utils.h"
 
 /**
- * Remove all blanks from the side including newline
- * @param line to clear the edges
- */
-/**
  * Remove all blanks from the side, optionally including newline
  * @param line to clear the edges
  * @param remove_newline flag to determine whether to remove newline
@@ -132,7 +128,6 @@ int is_ignorable(char *line){
 char* get_line_copy(const char* origin_line){
     char* copy = malloc(strlen(origin_line) + 1);
     if(!copy){
-        printf("[ERROR] Failed to allocate memory");
         return NULL;
     }
     strcpy(copy, origin_line);
@@ -146,15 +141,14 @@ char* get_line_copy(const char* origin_line){
  * @param input_file output of the concatenation
  * @param suffix of the file
  */
-void get_file(const char* file_name, char** input_file, const char* suffix){
+int get_file(const char* file_name, char** input_file, const char* suffix){
     size_t name_len = strlen(file_name);
     size_t suffix_len = strlen(suffix);
     *input_file = (char*)malloc(name_len + suffix_len + 1);
     if(*input_file == NULL){
-        printf("[ERROR] Failed to allocate memory,\n");
-        return;
+        return 1;
     }
     strcpy(*input_file, file_name);
     strcat(*input_file, suffix);
-
+    return 0;
 }

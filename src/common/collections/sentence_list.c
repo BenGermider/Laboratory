@@ -1,7 +1,6 @@
-#include "../../../include/common/collections/sentence_list.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../../include/common/collections/sentence_list.h"
 
 /**
  * Creates a node holding a sentence
@@ -9,7 +8,7 @@
  * @param type of the sentence
  * @return a pointer to the node
  */
-SenNode* createNode(void* data, SentenceType type) {
+SenNode* create_sentence(void* data, SentenceType type) {
     SenNode *newNode = (SenNode*)malloc(sizeof(SenNode));
 
     if (newNode == NULL) {
@@ -32,7 +31,7 @@ SenNode* createNode(void* data, SentenceType type) {
  * @param type of the node
  */
 int add_code(SentenceList* list, void* data, SentenceType type) {
-    SenNode* newNode = createNode(data, type);
+    SenNode* newNode = create_sentence(data, type);
     if (!newNode) return 1; /* Memory allocation failure */
     if (list->head == NULL) {
         list->head = newNode;
@@ -77,7 +76,7 @@ void merge_lists(SentenceList* list1, SentenceList* list2) {
  * Free the list
  * @param list to be freed.
  */
-void freeSentenceList(SentenceList* list) {
+void free_sentence_list(SentenceList* list) {
     SenNode* current = list->head;
     SenNode* nextNode;
 
@@ -92,7 +91,6 @@ void freeSentenceList(SentenceList* list) {
     free(list);
 }
 
-/* TODO: REMOVE ITS FOR DEBUGGING */
 void printSentenceList(SenNode* head) {
     SenNode* current = head;
     int i = 0;

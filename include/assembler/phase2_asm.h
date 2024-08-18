@@ -37,7 +37,6 @@ unsigned short int* calc_code(
         Node**,
         Node**,
         Node**,
-        Node**,
         Node**
 );
 
@@ -47,7 +46,6 @@ int second_pass(
         Node** labels,
         Node** entries,
         Node** externals,
-        Node** ext_file,
         Node** errors,
         SentenceList* code,
         SentenceList* data

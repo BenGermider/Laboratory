@@ -7,7 +7,7 @@
 /* Checks whether label declaration is valid */
 int is_valid_label(char **label, int is_decl);
 
-int valid_label_decl(char**, HashTable*);
+int valid_label_decl(char**, hash_table*);
 
 /* Insert a label into the labels table */
 int insert_label_table(Node **database, char *label, int lines);

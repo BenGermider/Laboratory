@@ -14,6 +14,7 @@
  */
 int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
     char* num_copy;
+    /* Calculate bounds for word */
     int min_bound = -(1 << (bounds - 1));
     int max_bound = (1 << (bounds - 1)) - 1;
     if(num == NULL){
@@ -21,12 +22,12 @@ int is_num_legal(char *num, INT_BOUND bounds, Node** errors, int line){
     }
     num_copy = num;
     if(!isdigit(*num) && *num != '+' && *num != '-'){
+        /* illegal integer prefix */
         return 1;
     }
     num_copy++;
     while(*(num_copy) != '\0'){
         if(!isdigit(*(num_copy))){
-            printf("[%c]\n", *num_copy);
             return 1;
         }
         (num_copy)++;
@@ -56,17 +57,18 @@ int integer_word(char* operand){
  * Converts an array of integers, as a string into an array.
  * @param line array of integers as a string
  * @param size to count the number of integers
+ * @param errors database of errors occurred
+ * @param line_num line in code currently parsing
  * @return array of integers
  */
- /* TODO: REFACTOR */
 int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
-    char* token;
+    char* sus_as_int;
     char* token_copy;
     size_t i = 0;
     size_t capacity = 10;
     char* copy;
-    int* arr, *final_arr, *temp;
-
+    int* arr, *temp;
+    if(line == NULL){ return NULL; }
     copy = (char*)malloc(strlen(line) + 1);
     if(!copy){ return NULL; }
     arr = (int*)malloc(capacity * sizeof(int));
@@ -76,22 +78,22 @@ int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
     }
 
     strcpy(copy, line);
-    token = strtok(copy, ",");
+    sus_as_int = strtok(copy, ",");
 
-    while (token != NULL) {
-        clear_side_blanks(&token, 0);
-        token_copy = token;
-        while (*token_copy != '\0') {
-            if (isspace(*token_copy)) {
-                free(copy);
-                free(arr);
-                append(errors, line_num, "Numbers are not separated properly");
-                return NULL;
-            }
-            token_copy++;
+    while (sus_as_int != NULL) {
+        clear_side_blanks(&sus_as_int, 0);
+        token_copy = sus_as_int;
+        if(*token_copy == '\0' || strpbrk(sus_as_int, " \t\n\v\f\r") != NULL){
+            /* Too many or no commas between ints */
+            free(copy);
+            free(arr);
+            append(errors, line_num, "Numbers are not separated properly");
+            return NULL;
         }
-        if (!is_num_legal(token, INST_BOUND, errors, line_num)) {
+
+        if (!is_num_legal(sus_as_int, INST_BOUND, errors, line_num)) {
             if (i >= capacity) {
+                /* Efficiently resize the array to hold more ints */
                 capacity *= 2;
                 temp = (int*)realloc(arr, capacity * sizeof(int));
                 if (temp == NULL) {
@@ -101,14 +103,11 @@ int* pull_numbers(char* line, size_t* size, Node** errors, int line_num) {
                 }
                 arr = temp;
             }
-            arr[i++] = atoi(token);
+            arr[i++] = atoi(sus_as_int);
         }
-        token = strtok(NULL, ",");
+        sus_as_int = strtok(NULL, ",");
     }
-
     *size = i;
     free(copy);
-
-    final_arr = (int*)realloc(arr, i * sizeof(int));
-    return final_arr ? final_arr : arr;
+    return arr;
 }

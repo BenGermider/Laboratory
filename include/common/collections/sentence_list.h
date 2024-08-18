@@ -15,7 +15,7 @@ typedef struct {
 } SentenceList;
 
 /* Creates a node by the type of data it stores */
-SenNode* createNode(void* data, SentenceType type);
+SenNode* create_sentence(void* data, SentenceType type);
 
 /* Add a new node into the list */
 int add_code(SentenceList* list, void* data, SentenceType type);
@@ -23,10 +23,9 @@ int add_code(SentenceList* list, void* data, SentenceType type);
 /* Merge two lists into one */
 void merge_lists(SentenceList* list1, SentenceList* list2);
 
-/* Prints a list of code TODO: Remove it is for debugging */
-void printSentenceList(SenNode* head);
-
 /* Free the list */
-void freeSentenceList(SentenceList*);
+void free_sentence_list(SentenceList*);
+
+void printSentenceList(SenNode*);
 
 #endif /* LABORATORY_SENTENCE_LIST_H */

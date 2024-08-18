@@ -22,39 +22,39 @@ unsigned int hash(char* key, size_t table_size) {
  * Initialize a hash table.
  * @return pointer to the hash table.
  */
-HashTable* createHashTable() {
-    HashTable* ht = (HashTable*)malloc(sizeof(HashTable));
-    if (ht == NULL) {
+hash_table* init_hash_table() {
+    hash_table* h_table = (hash_table*)malloc(sizeof(hash_table));
+    if (h_table == NULL) {
         return NULL;
     }
-    ht->table = (KeyVal**)calloc(1, sizeof(KeyVal*));
-    if (ht->table == NULL) {
-        free(ht);
+    h_table->table = (key_val**)calloc(1, sizeof(key_val*));
+    if (h_table->table == NULL) {
+        free(h_table);
         return NULL;
     }
-    ht->size = 1;
-    ht->count = 0;
-    return ht;
+    h_table->size = 1;
+    h_table->count = 0;
+    return h_table;
 }
 
 /**
  * Resizes the hash table
- * @param ht hash table to resize
+ * @param h_table hash table to resize
  * @param new_size desired new size for the hash table.
  */
-void resizeHashTable(HashTable* ht, size_t new_size) {
-    KeyVal** new_table = (KeyVal**)calloc(new_size, sizeof(KeyVal*));
+void resize_hash_table(hash_table* h_table, size_t new_size) {
+    key_val** new_table = (key_val**)calloc(new_size, sizeof(key_val*));
     size_t i;
     unsigned int new_index;
     if (new_table == NULL) {
         return;
     }
 
-    for (i = 0; i < ht->size; i++) {
+    for (i = 0; i < h_table->size; i++) {
         /* move the old hash table to the new hash table */
-        KeyVal* current = ht->table[i];
+        key_val* current = h_table->table[i];
         while (current != NULL) {
-            KeyVal* next = current->next;
+            key_val* next = current->next;
             new_index = hash(current->key, new_size);
             current->next = new_table[new_index];
             new_table[new_index] = current;
@@ -62,30 +62,30 @@ void resizeHashTable(HashTable* ht, size_t new_size) {
         }
     }
 
-    free(ht->table);
-    ht->table = new_table;
-    ht->size = new_size;
+    free(h_table->table);
+    h_table->table = new_table;
+    h_table->size = new_size;
 }
 
 /**
  * Insert a new key-val pair into the hash table.
- * @param ht hash table to insert to.
+ * @param h_table hash table to insert to.
  * @param key of the pair
  * @param value of the pair
  */
-void insert(HashTable* ht, char* key, char* value) {
+void insert(hash_table* h_table, char* key, char* value) {
     unsigned int index;
-    KeyVal* newPair;
-    KeyVal* current;
+    key_val* newPair;
+    key_val* current;
 
     /* TODO: CHECK IF NECESSARY */
-    if (ht->count >= ht->size * 0.75) {
+    if (h_table->count >= h_table->size * 0.75) {
         /* Resize the hash table */
-        resizeHashTable(ht, ht->size * 2);
+        resize_hash_table(h_table, h_table->size * 2);
     }
 
-    index = hash(key, ht->size); /* Calc hash for key */
-    newPair = (KeyVal*)malloc(sizeof(KeyVal));
+    index = hash(key, h_table->size); /* Calc hash for key */
+    newPair = (key_val*)malloc(sizeof(key_val));
     if (newPair == NULL) {
         return;
     }
@@ -108,11 +108,11 @@ void insert(HashTable* ht, char* key, char* value) {
     newPair->next = NULL;
 
     /* place new key-val in the hash-table */
-    if (ht->table[index] == NULL) {
-        ht->table[index] = newPair;
-        ht->count++;
+    if (h_table->table[index] == NULL) {
+        h_table->table[index] = newPair;
+        h_table->count++;
     } else {
-        current = ht->table[index];
+        current = h_table->table[index];
         while (current != NULL) {
             if (strcmp(current->key, key) == 0) {
                 /* Override the old value */
@@ -137,19 +137,19 @@ void insert(HashTable* ht, char* key, char* value) {
             current = current->next;
         }
         current->next =  newPair;
-        ht->count++;
+        h_table->count++;
     }
 }
 
 /**
  * Get the value of the key from the hash-table.
- * @param ht hash table that stores key-val
+ * @param h_table hash table that stores key-val
  * @param key to get the value
  * @return the value
  */
-char* get(HashTable* ht,  char* key) {
-    unsigned int index = hash(key, ht->size);
-    KeyVal* current = ht->table[index];
+char* get(hash_table* h_table,  char* key) {
+    unsigned int index = hash(key, h_table->size);
+    key_val* current = h_table->table[index];
     while (current != NULL) {
         if (strcmp(current->key, key) == 0) {
             return current->value;
@@ -161,52 +161,52 @@ char* get(HashTable* ht,  char* key) {
 
 /**
  * Free the hash-table
- * @param ht hash table to free allocated memory.
+ * @param h_table hash table to free allocated memory.
  */
-void freeHashTable(HashTable* ht) {
+void free_hash_table(hash_table* h_table) {
     size_t i;
-    for (i = 0; i < ht->size; i++) {
-        KeyVal* current = ht->table[i];
+    for (i = 0; i < h_table->size; i++) {
+        key_val* current = h_table->table[i];
         while (current != NULL) {
-            KeyVal* temp = current;
+            key_val* temp = current;
             current = current->next;
             free(temp->key);
             free(temp->value);
             free(temp);
         }
     }
-    free(ht->table);
-    free(ht);
+    free(h_table->table);
+    free(h_table);
 }
 
-void flushHashTable(HashTable* ht) {
+void flush_hash_table(hash_table* h_table) {
     size_t i;
-    for (i = 0; i < ht->size; i++) {
-        KeyVal *current = ht->table[i];
+    for (i = 0; i < h_table->size; i++) {
+        key_val *current = h_table->table[i];
         while (current != NULL) {
-            KeyVal *temp = current;
+            key_val *temp = current;
             current = current->next;
             free(temp->key);
             free(temp->value);
             free(temp);
         }
-        ht->table[i] = NULL;
+        h_table->table[i] = NULL;
     }
-    ht->count = 0;
+    h_table->count = 0;
 }
 
 /* TODO: FOR DEBUGGING, REMOVE */
-void printHashTable(HashTable* ht) {
+void print_hash_table(hash_table* h_table) {
     size_t i;
-    if (ht == NULL) {
+    if (h_table == NULL) {
         printf("Hash table is NULL\n");
         return;
     }
 
     printf("Hash Table Contents:\n");
     printf("--------------------\n");
-    for (i = 0; i < ht->size; i++) {
-        KeyVal* current = ht->table[i];
+    for (i = 0; i < h_table->size; i++) {
+        key_val* current = h_table->table[i];
         if (current != NULL) {
             printf("Bucket %d:\n", (int)i);
             while (current != NULL) {
@@ -216,7 +216,7 @@ void printHashTable(HashTable* ht) {
         }
     }
     printf("--------------------\n");
-    printf("Total items: %d\n", (int) ht->count);
-    printf("Table size: %d\n", (int) ht->size);
-    printf("Load factor: %.2f\n", (float)ht->count / ht->size);
+    printf("Total items: %d\n", (int) h_table->count);
+    printf("Table size: %d\n", (int) h_table->size);
+    printf("Load factor: %.2f\n", (float)h_table->count / h_table->size);
 }

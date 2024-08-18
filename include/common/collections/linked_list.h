@@ -16,12 +16,12 @@ Node* create_node(int number, const char *text);
 int append(Node **head, int number, const char *text);
 
 /* Checks whether a node holding a specific string exists */
-int exists(Node*, char*, int);
+int exists(Node*, char*, int, int);
 
 /* Get a node from the list */
 Node* get_node(Node* head, char* label);
 
-/* Prints a list TODO: REMOVE IT'S FOR DEBUGGING */
+/* Prints the desired list */
 void print_list(Node *head);
 
 /* Free a list at the end of the use */

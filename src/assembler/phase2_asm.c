@@ -1,11 +1,5 @@
 #include "../../include/assembler/phase2_asm.h"
 #include "../../include/assembler/output_manager.h"
-#include "../../include/common/data_types.h"
-#include "../../include/common/operands/registers.h"
-#include "../../include/common/operands/integers.h"
-#include "../../include/common/collections/linked_list.h"
-#include "../../include/common/collections/sentence_list.h"
-#include "../../include/common/consts.h"
 
 /**
  * Get the type of the operand according to the protocol
@@ -29,6 +23,7 @@ int get_operand_type(char* operand, INT_BOUND bound){
 
 void is_valid_operand(CommandSentence *c_s, Node** errors, int src_type, int dest_type){
     int i, is_valid = 0;
+
     for(i = 0; i < sizeof(OPERATIONS[0].src_arg) / sizeof(OPERATIONS[0].src_arg[0]); i++){
         if(src_type == OPERATIONS[c_s->operation].src_arg[i]){
             is_valid = 1;
@@ -100,17 +95,18 @@ unsigned short int operand_as_code(char* operand, Node** labels, Node** external
     if(op_type == 0) { /* Integer */
         return integer_word(operand);
     } else if(op_type == 1){
-        if(exists(*externals, operand, 0)){ /* External label */
+        if(exists(*externals, operand, 0, 0)){ /* External label */
             return 1;
         }
-        if (exists(*labels, operand, 0)){ /* Not external label */
+        if (exists(*labels, operand, 0, 0)){ /* Not external label */
             operand_node = get_node(*labels,operand);
             return ((operand_node->data->line) << DESTINATION) | RELOCATABLE;
         }
         append(errors, line, "Label is not declared.");
         return 0;
     } else if(reg_arg(operand)){  /* Registers */
-        if(path){
+
+        if(path == SRC_OP){
             return (get_reg(operand) << SRC_OP) | ABSOLUTE;
         } else {
             return (get_reg(operand) << DESTINATION) | ABSOLUTE;
@@ -143,7 +139,7 @@ void handle_operands(unsigned short int** machine_code, CommandSentence* c_s, No
     }
     if(c_s->src){
         /* If there is source operand, save it as well */
-        (*machine_code)[1] = operand_as_code(c_s->src, labels, externals, SOURCE, errors, c_s->pos);
+        (*machine_code)[1] = operand_as_code(c_s->src, labels, externals, SRC_OP, errors, c_s->pos);
     }
 }
 
@@ -188,6 +184,10 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node**
     return machine_code;
 }
 
+void update_extern(Node* externals, CommandSentence* command, int line){
+    exists(externals, command->src, 1, line);
+    exists(externals, command->dest, 1, line);
+ }
 /**
  * Main conversion code. Runs over the commands and instructions and converts them into integers representing
  * the code according to the given protocol.
@@ -197,16 +197,15 @@ unsigned short int* get_command_code(CommandSentence* c_s, Node** errors, Node**
  * @param labels database of labels of the code
  * @param entries database of entry labels of the code
  * @param externals database of extern labels of the code
- * @param ext_file database of extern labels to store in a file
  * @return machine code for the assembly file.
  */
-unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** ext_file, Node** errors){
+unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, Node** labels, Node** entries, Node** externals, Node** errors){
     int i, L = 0;
     SenNode* current_line;
     unsigned short int* translation = NULL;
     unsigned short int* machine_code;
-    /* Merge lists, first code then data, according to the protocol */
 
+    /* Merge lists, first code then data, according to the protocol */
     merge_lists(code, data);
     machine_code = (unsigned short int*)calloc(code->size, sizeof(unsigned short int));
     if(!machine_code){ return NULL; }
@@ -216,16 +215,11 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
         if (current_line->type == COMMAND) {
             /* Convert the command into words and store them in the machine code array. */
             translation = get_command_code(current_line->sentence.command, errors, labels, entries, externals);
-
             if (translation != NULL) {
                 for (i = 0; i < current_line->sentence.command->word_count; i++) {
                     if(translation[i] == 1){
-                        /* Store external labels if there are in the database for the extern file TODO: FIND IF POSSIBLE TO USE EXTERNALS*/
-                        if(exists(*externals, current_line->sentence.command->src, 0)){
-                            append(ext_file, L + FIRST_ADDRESS, current_line->sentence.command->src);
-                        } else if (exists(*externals, current_line->sentence.command->dest, 0)){
-                            append(ext_file, L + FIRST_ADDRESS, current_line->sentence.command->dest);
-                        }
+                        /* Store external labels if there are in the database for the extern file */
+                        update_extern(*externals, current_line->sentence.command, L + FIRST_ADDRESS);
                     }
                     machine_code[L] = translation[i];
                     (*IC)++;
@@ -251,7 +245,6 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
         }
         current_line = (SenNode *) current_line->next;
     }
-    print_list(*errors);
     return machine_code;
 }
 
@@ -262,7 +255,6 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
  * @param labels database of labels of the code
  * @param entries database of entry labels of the code
  * @param externals database of extern labels of the code
- * @param ext_file database of extern labels to store in the file
  * @param code commands of the assembly file
  * @param data data to store of the assembly file
  * @return code of success or failure
@@ -272,14 +264,13 @@ int second_pass(
         Node** labels,
         Node** entries,
         Node** externals,
-        Node** ext_file,
         Node** errors,
         SentenceList* code,
         SentenceList* data
         ){
     int IC = 0;
     /* Get the machine code */
-    unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, ext_file, errors);
+    unsigned short int* machine_code = calc_code(code, data, &IC, labels, entries, externals, errors);
     if(machine_code == NULL){
         return 1;
     }
@@ -291,7 +282,7 @@ int second_pass(
 
     write_obj_file(file_name, machine_code, IC, data->size);
     write_entry_file(file_name, labels, entries);
-    write_extern_file(file_name, ext_file);
+    write_extern_file(file_name, externals);
 
     free(machine_code);
     return 0;

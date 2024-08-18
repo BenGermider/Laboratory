@@ -71,7 +71,7 @@ int append(Node **head, int number, const char *text) {
  * @param invalid flag for an error
  * @return 1 if exists, 0 otherwise
  */
-int exists(Node *head, char* label, int invalid) {
+int exists(Node *head, char* label, int is_update, int line) {
     Node *temp;
 
     temp = head;
@@ -80,8 +80,8 @@ int exists(Node *head, char* label, int invalid) {
     }
     while (temp != NULL) {
         if (strcmp(temp->data->text, label) == 0) {
-            if(invalid) {
-                printf("[ERROR] Invalid usage of source declaration on label.\n");
+            if(is_update){
+                temp->data->line = line;
             }
             return 1;  /* Found */
         }

@@ -4,7 +4,7 @@
 KINITIALVALUE: sub *r4   ,    *r3
 
 MAIN:   mov *r3, LENGTH
-
+    .extern MAIN
 LOOP:   jmp L1
 
     macr M1

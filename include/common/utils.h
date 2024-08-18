@@ -14,7 +14,7 @@ void free_space(int amount, ...);
 int is_ignorable(char*);
 
 /* Get a file name by name and suffix */
-void get_file(const char* file_name, char** input_file, const char* suffix);
+int get_file(const char* file_name, char** input_file, const char* suffix);
 
 /* Get a line copy */
 char* get_line_copy(const char* origin_line);

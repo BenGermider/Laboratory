@@ -8,19 +8,14 @@
  * @param labels
  * @param entries
  * @param externals
- * @param ext_file
  * @param errors
  * @param code
- * @param data
  */
 void free_all(
         Node* labels,
         Node* entries,
         Node* externals,
-        Node* ext_file,
-        Node* errors,
         SentenceList* code,
-        SentenceList* data,
         char* file_name
         ){
     if(labels != NULL){
@@ -32,13 +27,7 @@ void free_all(
     if(externals != NULL){
         free_list(externals);
     }
-    if(ext_file != NULL){
-        free_list(ext_file);
-    }
-    if(errors != NULL){
-        free_list(errors);
-    }
-    freeSentenceList(code);
+    free_sentence_list(code);
     free(file_name);
 }
 
@@ -49,19 +38,17 @@ void free_all(
  * @param errors database holding the errors occurred.
  * @return code of success or fail.
  */
-int assembler(const char* file_name, HashTable* macros, Node** errors){
+int assembler(const char* file_name, hash_table* macros, Node** errors){
     char* src_file_name;
     FILE *assembly;
     Node* externals = NULL;
-    Node* ext_file = NULL;
     Node* entries = NULL;
     Node* labels = NULL;
     SentenceList* code = NULL;
     SentenceList* data = NULL;
 
     /* Get the name of the file with the suffix */
-    get_file(file_name, &src_file_name, ".am");
-    if(!src_file_name){
+    if(get_file(file_name, &src_file_name, ".am")){
         return 1;
     }
 
@@ -89,30 +76,30 @@ int assembler(const char* file_name, HashTable* macros, Node** errors){
     /* Executed first pass and stops if exceptions occurred */
     if(first_pass(assembly, &labels, &externals, &entries, errors, code, data, macros)){
         print_list(*errors);
-        free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
+        free_all(labels, entries, externals,  code,  src_file_name);
         return 1;
     }
     /* Executed second pass and stops if exceptions occurred */
-    if(second_pass(file_name, &labels, &entries, &externals, &ext_file, errors, code, data)){
-        free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
+    if(second_pass(file_name, &labels, &entries, &externals, errors, code, data)){
+        free_all(labels, entries, externals, code, src_file_name);
         print_list(*errors);
         return 1;
     }
 
     /* Free dynamically allocated data */
-    free_all(labels, entries, externals, ext_file, *errors, code, data, src_file_name);
+    free_all(labels, entries, externals,  code, src_file_name);
     return 0;
 }
 
 int main(int argc, char* argv[]) {
     /* Database of macros declaration */
     int i;
-    HashTable* macros = createHashTable();
+    hash_table* macros = init_hash_table();
     Node* errors = NULL;;
 
     for(i = 1; i < argc; i++){
         flush_list(&errors);
-        flushHashTable(macros);
+        flush_hash_table(macros);
         printf("[MAIN PROCESS] Assembler works on %s\n", argv[i]);
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
@@ -124,8 +111,8 @@ int main(int argc, char* argv[]) {
         }
         printf("[MAIN PROCESS] %s has been assembled successfully.\n", argv[i]);
     }
-    /* TODO: MAKE FILES HERE */
-    freeHashTable(macros);
+
+    free_hash_table(macros);
     free_list(errors);
     /* Free database of macros */
     return 0;

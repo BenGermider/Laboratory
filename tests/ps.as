@@ -8,7 +8,7 @@ LOOP: prn #48
  inc r6
  mov *r6, L3
  sub r1, r4
- cmp r3, #-6
+ cmp r3, #-2048
  bne END
  add r7, *r6
  clr K

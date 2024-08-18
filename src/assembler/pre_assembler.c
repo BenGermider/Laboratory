@@ -3,18 +3,19 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "../../include/assembler/pre_assembler.h"
+#include "../../include/common/operands/registers.h"
 #include "../../include/common/library.h"
 #include "../../include/common/utils.h"
 #include "../../include/common/consts.h"
 
 /**
  * Check validity of macro name
- * @param ht collections of macros
+ * @param h_table collections of macros
  * @param macro_line line where macro name is written
  * @param macro_name pointer for the macro name to be stored
  * @return if valid macro name.
  */
-int is_valid(HashTable *ht, char* macro_line, char* macro_name){
+int is_valid(hash_table *h_table, char* macro_line, char* macro_name){
     int i;
     clear_side_blanks(&macro_line, 0);
     if(strcmp(strtok(macro_line, " "), macro_line) != 0){
@@ -39,7 +40,9 @@ int is_valid(HashTable *ht, char* macro_line, char* macro_name){
             return 0;
         }
     }
-
+    if(reg_arg(macro_line)){
+        return 0;
+    }
     strcpy(macro_name, macro_line);
     return 1;
 }
@@ -49,7 +52,7 @@ int is_valid(HashTable *ht, char* macro_line, char* macro_name){
  * the new file.
  * @param line to analyze if part of a macro and handle it
  * @param in_macro flag if inside a macro
- * @param ht database of macros
+ * @param h_table database of macros
  * @param macro_name name of macro
  * @param macro_content commands inside the macro
  * @param errors if there are any errors
@@ -59,7 +62,7 @@ int is_valid(HashTable *ht, char* macro_line, char* macro_name){
 char* analyze(
         char* line,
         int* in_macro,
-        HashTable* ht,
+        hash_table* h_table,
         char* macro_name,
         char* macro_content,
         Node** errors,
@@ -77,15 +80,19 @@ char* analyze(
     }
     strcpy(macro_line, line);
     clear_side_blanks(&macro_line, 0);
+    if(macro_line[0] == ';'){
+        free(macro_line);
+        return line;
+    }
     if ((extra_char = strstr(macro_line, MACRO_END))) {
         /* Found macro ending, add it into the macro database */
         if(extra_char - macro_line != 0){
             append(errors, current_line, "Label declaration did not close properly.");
         }
-        if(*(macro_line + strlen(MACRO_END)) != '\0'){
+        if(*(extra_char + strlen(MACRO_END)) != '\0'){
             append(errors, current_line, "Label declaration did not close properly.");
         }
-        insert(ht, macro_name, macro_content);
+        insert(h_table, macro_name, macro_content);
         *in_macro = 0;
         macro_name[0] = '\0';
         macro_content[0] = '\0';
@@ -94,12 +101,18 @@ char* analyze(
         return "";
     } else if ((extra_char = strstr(macro_line, MACRO_START))) {
         if(extra_char - macro_line != 0){
+            printf("here, %s\n", macro_line);
             append(errors, current_line, "Label declaration did not open properly.");
         }
         /* Found a macro declaration */
         macro_name_start = extra_char + strlen(MACRO_START);
+        if(*macro_name_start == '\0'){
+            append(errors, current_line, "Missing macro declaration.");
+            free(macro_line);
+            return "";
+        }
         clear_side_blanks(&macro_name_start, 0);
-        if (!is_valid(ht, macro_name_start, macro_name)) {
+        if (!is_valid(h_table, macro_name_start, macro_name)) {
             /* Handle macro name declaration, alert if errors */
             if(append(errors, current_line, "Bad macro name")){
                 free(macro_line);
@@ -109,10 +122,11 @@ char* analyze(
             /* Macro is not part of .am file, return empty string to not write it to .am */
             return "";
         }
-        if(get(ht, macro_name)){
+        if(get(h_table, macro_name)){
             append(errors, current_line, "Macro already exists");
         }
         if(*(macro_name_start + strlen(macro_name)) != '\0'){
+            printf("alla, %s\n", macro_line);
             append(errors, current_line, "Label declaration did not open properly.");
         }
         *in_macro = 1;
@@ -125,7 +139,7 @@ char* analyze(
         return "";
     }
 
-    else if ((macro = get(ht, macro_line))) {
+    else if ((macro = get(h_table, macro_line))) {
         /* Found a macro call, write it's content into the file */
         free(macro_line);
         return macro;
@@ -146,7 +160,7 @@ char* analyze(
  * @param macros database of macros.
  * @return code of success or failure.
  */
-int order_as_file(FILE *input_file, FILE *output_file, Node** errors_list, HashTable* macros) {
+int order_as_file(FILE *input_file, FILE *output_file, Node** errors_list, hash_table* macros) {
     int in_macro = 0;
     int current_line = 1;
     char* to_output;
@@ -206,21 +220,21 @@ int terminate(FILE* f_output, FILE* f_input, char* output_name, char* input_name
  * @param macros database of macros
  * @return code of success or failure.
  */
-int pre_assembler(char* name_of_file, HashTable* macros, Node** errors) {
+int pre_assembler(char* name_of_file, hash_table* macros, Node** errors) {
     int result = 0;
     char *input_file_name = NULL, *output_file_name = NULL;
 
     FILE *file_to_scan, *file_to_write;
     /* Get the name of the files */
-    get_file(name_of_file, &input_file_name, ".as");
-    if (input_file_name == NULL){
+    if(get_file(name_of_file, &input_file_name, ".as")){
         return 1;
     }
-    get_file(name_of_file, &output_file_name, ".am");
-    if(output_file_name == NULL) {
+
+    if(get_file(name_of_file, &output_file_name, ".am")){
         free(input_file_name);
         return 1;
     }
+
     /* Open the files */
     file_to_scan = fopen(input_file_name, "r");
     if (file_to_scan == NULL) {
@@ -238,9 +252,11 @@ int pre_assembler(char* name_of_file, HashTable* macros, Node** errors) {
         free(output_file_name);
         return 1;
     }
+
     /* Get the file converted */
     result = order_as_file(file_to_scan, file_to_write, errors, macros);
     /* If encountered errors, let the user know */
+
     if(result || *errors != NULL){
         print_list(*errors);
         return terminate(file_to_write, file_to_scan, output_file_name, input_file_name, result);
