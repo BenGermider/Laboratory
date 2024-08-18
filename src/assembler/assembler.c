@@ -117,11 +117,9 @@ int main(int argc, char* argv[]) {
         /* Converts an assembly file into machine code file but stops if errors occurred,
          * for every file given as an argument */
         if (pre_assembler(argv[i], macros, &errors)) {
-            printf("FAILED PRE\n");
             continue;
         }
         if (assembler(argv[i], macros, &errors)) {
-            printf("FAILED POST\n");
             continue;
         }
         printf("[MAIN PROCESS] %s has been assembled successfully.\n", argv[i]);

@@ -210,7 +210,6 @@ unsigned short int* calc_code(SentenceList* code, SentenceList* data,  int* IC, 
     merge_lists(code, data);
     machine_code = (unsigned short int*)calloc(code->size, sizeof(unsigned short int));
     if(!machine_code){ return NULL; }
-    print_list(*labels);
     current_line = code->head;
     while (current_line != NULL && *IC + data->size <= LAST_ADDRESS - FIRST_ADDRESS) {
         /* Iterate over the lines */

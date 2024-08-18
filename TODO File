@@ -30,6 +30,6 @@ ERRORS:
 20) illegal string  X
 21) file too long  X
 23) illegal data declaration
-24) label's source is already defined differently
+24) label's source is already defined differently  X
 25) label is also a macro  X
 26) missing space after :  X

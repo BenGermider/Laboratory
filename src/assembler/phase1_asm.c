@@ -452,11 +452,17 @@ int first_pass(
                     continue;
                 }
                 /* get the source of the label and store it in the relevant database */
-                if (i_s->src == 0 && !exists(*externals, i_s->label, 1) && !is_label_macro(macros, i_s->label, L, errors)) {
+                if (i_s->src == 0 && !is_label_macro(macros, i_s->label, L, errors)) {
+                    if(exists(*externals, i_s->label, 1)){
+                        append(errors, L, "Label already declared as extern");
+                    }
                     if(insert_source_label(entries, i_s->label, 0)){
                         return free_at_error((void*)i_s, copy, line);
                     }
-                } else if (i_s->src == 1 && !exists(*entries, i_s->label, 1) && !is_label_macro(macros, i_s->label, L, errors)) {
+                } else if (i_s->src == 1 && !is_label_macro(macros, i_s->label, L, errors)) {
+                    if(exists(*externals, i_s->label, 1)){
+                        append(errors, L, "Label already declared as entry");
+                    }
                     if(insert_source_label(externals, i_s->label, 0)){
                         return free_at_error((void*)i_s, copy, line);
                     }
@@ -469,8 +475,10 @@ int first_pass(
             c_s = pull_command(copy, L, errors, macros);
             if(c_s != NULL){
                 if(c_s->label != NULL && !is_label_macro(macros, c_s->label, L, errors)){
+                    if(exists(*externals, c_s->label, 0)){
+                        append(errors, L, "Cannot define extern label here.");
+                    }
                     insert_label_table(labels, c_s->label, IC + FIRST_ADDRESS);
-                    update_line(c_s->label, IC + FIRST_ADDRESS, externals, entries);
                 }
                 IC += c_s->word_count;
                 c_s->pos = L;
